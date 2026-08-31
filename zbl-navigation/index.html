@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="DualNav：以 Pixel Goal 连接视觉语言推理与连续轨迹执行的通用具身导航底座">
+  <title>DualNav · 通用具身导航底座</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-head">
+    <a class="brand" href="#top"><i></i> DUALNAV</a>
+    <nav><a href="#why">WHY</a><a href="#system">SYSTEM</a><a href="#innovation">DESIGN</a><a href="#training">TRAINING</a><a href="#results">RESULTS</a><a href="#demos">DEMOS</a></nav>
+    <button class="present-btn" id="presentBtn">演示模式</button>
+  </header>
+
+  <main id="top">
+    <section class="hero chapter">
+      <div class="hero-copy">
+        <span class="eyebrow">CAMERA-ONLY · GENERALIST NAVIGATION</span>
+        <h1>让机器人听懂任务，<br><em>也知道下一步往哪走。</em></h1>
+        <p class="lead">一个面向多任务、跨本体的具身导航底座。上层 Agent 负责任务拆分，DualNav 统一承接点导航、物体导航、指令跟随、任务跟随与通道导航。</p>
+        <div class="hero-route"><span>语言任务</span><i>→</i><span>Pixel Goal</span><i>→</i><span>连续轨迹</span></div>
+        <a class="button primary" href="#system">进入系统设计 ↓</a>
+      </div>
+      <div class="hero-stage">
+        <div class="scope"><small>ONE FOUNDATION</small><b>5 NAV MODES</b></div>
+        <div class="camera-frame"><span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span><div class="horizon"></div><div class="path p1"></div><div class="path p2"></div><div class="pixel">320, 286</div></div>
+        <div class="mode-list"><span>POINT</span><span>OBJECT</span><span>INSTRUCTION</span><span>TASK</span><span>PASSAGE</span></div>
+      </div>
+      <div class="metrics-strip"><div><b>97%</b><span>NavArena PointNav SR</span></div><div><b>0.970</b><span>NavArena SPL</span></div><div><b>4 QUERIES</b><span>可学习 Latent Goal</span></div><div><b>8.3×</b><span>DiT 训练加速</span></div></div>
+    </section>
+
+    <section class="chapter" id="why">
+      <div class="section-head"><span>01 / WHY</span><div><h2>传统导航的极限，不是“走不到”</h2><p>而是每换一种任务、环境或机器人，都要重新定义接口与能力边界。</p></div></div>
+      <div class="limit-grid">
+        <article><small>01</small><h3>任务泛化</h3><p>传统栈擅长已知坐标上的确定性规划，却难以统一理解“去最近的椅子”“穿过走廊后左转”等不同目标形式。</p></article>
+        <article><small>02</small><h3>语义探索</h3><p>目标不在视野内时，导航不再只是路径搜索，而需要结合历史观察推断“应该去哪里找”。</p></article>
+        <article><small>03</small><h3>跨本体迁移</h3><p>直接预测离散动作或控制量会绑定机器人运动学；视觉空间中的 Pixel Goal 更接近本体无关的中间语言。</p></article>
+        <article><small>04</small><h3>低传感器依赖</h3><p>只使用相机完成语义理解与导航决策，减少地图、激光与精密标定带来的部署成本。</p></article>
+      </div>
+      <div class="boundary"><b>上层 Agent</b><span>拆解长期任务</span><i>→</i><div><em>PointNav</em><em>ObjectNav</em><em>Instruction Following</em><em>Task Following</em><em>PassageNav</em></div><i>→</i><b>统一导航底座</b></div>
+    </section>
+
+    <section class="chapter tint" id="system">
+      <div class="section-head"><span>02 / SYSTEM</span><div><h2>为什么是“大小脑”结构？</h2><p>语义推理需要看得远、想得慢；运动执行需要反应快、轨迹稳。解耦规划与执行，才同时保留两者。</p></div></div>
+      <div class="brain-layout">
+        <div class="brain-card sys2"><span>SYSTEM–2 · SLOW</span><h3>语义大脑</h3><p>融合指令、历史与当前视觉，判断目标方位与探索方向。</p><div class="tags"><i>VLM</i><i>History</i><i>Reasoning</i></div></div>
+        <div class="bridge"><small>EXPLICIT</small><b>PIXEL GOAL</b><span>( u, v )</span><i>+</i><small>IMPLICIT</small><b>LATENT GOAL</b><span>4 queries</span></div>
+        <div class="brain-card sys1"><span>SYSTEM–1 · FAST</span><h3>运动小脑</h3><p>条件化生成多模态连续轨迹，处理局部避障与本体动力学。</p><div class="tags"><i>DiT</i><i>Depth</i><i>Trajectory</i></div></div>
+      </div>
+      <figure class="asset-figure dark"><img src="../assets/架构图参考_dualvln.png" alt="DualVLN 大小脑架构参考图"><figcaption>经典大小脑范式：System-2 输出显式与隐式目标，System-1 将目标落成可执行轨迹。</figcaption></figure>
+      <div class="rationale"><div><b>解耦规划与执行</b><span>大模型无需承担高频控制，小模型无需重新学习复杂语义。</span></div><div><b>多模态轨迹建模</b><span>DiT 表达同一目标下多条合理路径，而非回归唯一动作。</span></div><div><b>稳定的中间接口</b><span>可解释的 Pixel Goal 与高容量 Latent Goal 共同连接两个系统。</span></div></div>
+    </section>
+
+    <section class="chapter" id="innovation">
+      <div class="section-head"><span>03 / DESIGN</span><div><h2>三个设计，让 VLM 真正“会导航”</h2><p>不是让模型凭空学习坐标系，而是把空间、优先级和历史明确写进任务。</p></div></div>
+      <div class="design-stack">
+        <article class="feature"><div class="feature-no">A</div><div><span class="eyebrow">UNIFIED OUTPUT SPACE</span><h3>所有任务，统一输出 Pixel Goal</h3><p>VLM 在海量图像上预训练，对像素方位的理解天然强于机器人坐标与控制量。显式指定 640×480 坐标系，减少空间表示的学习负担。</p><div class="prompt"><code>[PointNav] ... Return exactly one pixel goal (u, v).<br>Prefer FORWARD ... farthest navigable pixel.<br>(0,240) TURN LEFT · (639,240) TURN RIGHT · (320,479) STOP</code></div></div></article>
+        <article class="feature reverse"><div class="feature-no">B</div><div><span class="eyebrow">STRONG ACTION PRIOR</span><h3>先前进，再转向；先可见点，再猜测</h3><p>Prompt 明确动作优先级：局部目标可见时，选择沿目标方向最远的可行走像素；目标在视野外才输出转向哨兵点。这一约束直接抑制原地打转与左右摆动。</p><div class="priority"><span>VISIBLE → FORWARD</span><i>›</i><span>OUT OF VIEW → TURN</span><i>›</i><span>&lt; 1 m → STOP</span></div></div></article>
+        <article class="feature"><div class="feature-no">C</div><div><span class="eyebrow">DUAL CAMERA CONTEXT</span><h3>头部看语义，底盘决定落脚点</h3><p>输入由指令、8 帧历史观察、当前头部图与底盘图组成。头部相机覆盖高处物体；底盘相机拥有更大的近场视野，能看到障碍与可行走区域，因此用其坐标输出 (u, v)。</p><div class="conversation"><span>&lt;instruction&gt;</span><span>&lt;history × 8&gt;</span><span>head-view &lt;image&gt;</span><b>chassis-view &lt;image&gt; → (u,v)</b></div></div></article>
+      </div>
+    </section>
+
+    <section class="chapter tint" id="labeling">
+      <div class="section-head"><span>04 / DATA</span><div><h2>从仿真轨迹到 Pixel Goal：自动标注管线</h2><p>无需人工逐帧点击。利用位姿、深度和未来轨迹，把行为数据自动变成监督信号。</p></div></div>
+      <div class="pipeline"><div><small>INPUT</small><b>Pose + RGB + Depth</b></div><i>→</i><div><small>LOOK AHEAD</small><b>未来 200 步轨迹</b></div><i>→</i><div><small>PROJECT</small><b>投影至底盘图像</b></div><i>→</i><div><small>FILTER</small><b>深度过滤遮挡点</b></div><i>→</i><div><small>LABEL</small><b>最远可见 Pixel Goal</b></div></div>
+      <figure class="asset-figure"><img src="../assets/montage_label_steps.jpg" alt="点导航 Pixel Goal 自动标注步骤"><figcaption>PointNav：若未来轨迹均不可见，则把采集时的离散动作映射为转向 / 停止哨兵像素。</figcaption></figure>
+      <figure class="asset-figure"><img src="../assets/object_point_montage_label_steps.jpg" alt="物体导航 Pixel Goal 自动标注步骤"><figcaption>ObjectNav：目标可见时投影 3D 物体位置；不可见时退化为最远可见轨迹点，引导继续探索。</figcaption></figure>
+    </section>
+
+    <section class="chapter" id="training">
+      <div class="section-head"><span>05 / TRAINING</span><div><h2>训练解耦：让“慢思考”只运行一次</h2><p>把 latent queries 提前到 System-2 阶段学习，并离线缓存其输出，使 DiT 可以独立、快速迭代。</p></div></div>
+      <div class="token-sequence"><span>system prompt</span><span>vision tokens</span><span>user prompt</span><b>latent queries<small>可学习 · n=4</small></b><em>answer<small>LM loss</small></em></div>
+      <div class="train-compare">
+        <div><span>BEFORE</span><h3>每个 epoch 重跑 VLM</h3><p>几十亿参数反复前向；latent queries 到阶段 2 才与 DiT 一起学习，两个系统强绑定。</p><strong>44 h</strong></div>
+        <i>→</i>
+        <div class="after"><span>OURS</span><h3>System-2 一次性离线缓存</h3><p>latent queries 与 VLM backbone 协同学习；System-1 直接加载缓存特征，独立训练与强化。</p><strong>4.8 h <small>8.3× faster</small></strong></div>
+      </div>
+      <div class="latent-why"><article><b>只有 Pixel Goal？</b><p>显式、可解释，但二维坐标的信息容量有限，无法携带路径语义和环境上下文。</p></article><article><b>只取文本 hidden state？</b><p>System-1 只能被动消费固定特征，无法主动选择应该从 VLM 读取什么。</p></article><article class="selected"><b>Pixel + Latent Goal</b><p>像素提供强监督与可解释锚点；可学习 query 建立自适应、高容量的信息通路。</p></article></div>
+    </section>
+
+    <section class="chapter tint" id="engineering">
+      <div class="section-head"><span>06 / ITERATE</span><div><h2>失败不是例外，而是设计输入</h2><p>从打转、碰撞到物体漏检，每类错误都对应一项可验证的系统改动。</p></div></div>
+      <div class="issue-grid">
+        <article><span>SPINNING</span><h3>原地打转 / 左右摆动</h3><ul><li>Evaluator：目标在视野内时强制输出轨迹</li><li>Prompt 强调 prefer forward</li><li>转向数据控制为正常行走的 1/3</li></ul><strong>R2R Seen SR · 61% → 91%</strong></article>
+        <article><span>COLLISION</span><h3>轨迹凸包导致碰撞</h3><p>对生成轨迹做 Bezier 曲线优化，减少不连续拐点与局部外凸。</p><img src="../assets/bezier_example.jpg" alt="Bezier 曲线轨迹优化示例"></article>
+        <article><span>OBJECT MEMORY</span><h3>漏检、错实例与重复探索</h3><p>检测到物体后结合深度转成世界坐标保存；再次检测时更新 memory，并转换到当前坐标系作为强历史提示。</p><div class="memory-flow"><i>Detect</i><i>3D</i><i>Memory</i><i>Reproject</i></div></article>
+        <article><span>MODEL SPEED</span><h3>更换 Qwen3-VL 4B</h3><div class="model-row"><b>4B</b><em>159M trainable</em><strong>23 s/it</strong></div><div class="model-row"><b>8B</b><em>235M trainable</em><strong>58.9 s/it</strong></div><p>小基座显著提升训练迭代速度，同时保留多模态理解能力。</p></article>
+      </div>
+    </section>
+
+    <section class="chapter" id="results">
+      <div class="section-head"><span>07 / RESULTS</span><div><h2>从标准数据集，到具身评测场</h2><p>Habitat 验证跨数据集泛化；NavArena 额外检验真实 footprint、碰撞与长时执行。</p></div></div>
+      <div class="leaderboard">
+        <div class="leader-copy"><span>NAVARENA · SAGE3D · POINTNAV100</span><h3>自训练模型达到当前最佳结果</h3><p>System-2 预测 Pixel Goal，System-1 生成连续轨迹，并通过 Bezier 后处理；在 0.70 × 0.60 m 矩形 footprint、stop distance 0.8 m 设置下完成 97 / 100。</p><small>评测快照：2026-08-14 · 长度均衡 · collision-free 汇总</small></div>
+        <div class="leader-score"><b>97<sup>%</sup></b><span>SUCCESS RATE</span><div><i>SPL <strong>0.970</strong></i><i>NE <strong>0.880 m</strong></i><i>CR <strong>0.011</strong></i><i>STEPS <strong>24.8</strong></i></div></div>
+      </div>
+      <div class="benchmark-bars" aria-label="NavArena 方法对比">
+        <div><span><b>Self-train · Sys2+Sys1+Bezier</b><small>rectangle</small></span><i style="--score:97%">97%</i></div>
+        <div><span><b>Mixed data · Pixel Goal + Planner</b><small>rectangle</small></span><i style="--score:92%">92%</i></div>
+        <div><span><b>Self-train · Pixel Goal + Planner</b><small>circle</small></span><i style="--score:92%">92%</i></div>
+        <div><span><b>Qwen2.5-7B + Planner</b><small>circle</small></span><i style="--score:90%">90%</i></div>
+        <div><span><b>Latent-query policy</b><small>rectangle · early iteration</small></span><i style="--score:57%">57%</i></div>
+      </div>
+      <p class="result-caveat">Footprint 会显著改变难度，因此圆形与矩形设置不做直接优劣归因；本页同时保留 NE、CR 与步数，避免只用 SR 描述系统。</p>
+      <h3 class="subresult">Habitat · R2R / RxR Seen & Unseen</h3>
+      <div class="result-hero"><div><span>R2R VAL UNSEEN</span><b>70.74%</b><small>Success · LoRA r32 + mixed data</small></div><div><span>RxR VAL UNSEEN</span><b>55.0%</b><small>Success · LoRA r32 + mixed data</small></div><div><span>POINT VISIBLE</span><b>91.2%</b><small>Success · direct Sys-1 routing</small></div></div>
+      <div class="table-wrap"><table><caption>主要实验（Seen / Unseen）</caption><thead><tr><th>设置</th><th>数据</th><th>R2R Success</th><th>R2R SPL</th><th>R2R NE↓</th><th>RxR Success</th><th>RxR SPL</th><th>RxR NE↓</th></tr></thead><tbody>
+        <tr><td>InternVLA</td><td>VLN-CE 100%</td><td>79.43 / 62.81</td><td>72.75 / 62.81</td><td>2.54 / 4.16</td><td>68.59 / 59.55</td><td>58.24 / 50.11</td><td>3.99 / 4.73</td></tr>
+        <tr><td>LoRA r16</td><td>VLN-CE 15%</td><td>— / 59.25</td><td>59.59 / 66.01</td><td>4.87 / 4.39</td><td>41.67 / 39.31</td><td>40.63 / 37.87</td><td>7.56 / 8.40</td></tr>
+        <tr><td>LoRA r16</td><td>VLN-CE + 15K</td><td>60.45 / 69.0</td><td>60.23 / 68.6</td><td>4.66 / 4.19</td><td>52.1 / 51.9</td><td>50.0 / 50.0</td><td>6.71 / 6.05</td></tr>
+        <tr class="ours"><td>LoRA r32</td><td>VLN-CE + 15K</td><td>64.9 / 70.74</td><td>64.6 / 69.8</td><td>4.54 / 4.08</td><td>53.21 / 55.0</td><td>50.5 / 52.4</td><td>6.72 / 5.82</td></tr>
+      </tbody></table></div>
+      <div class="speed-table"><div><span>训练方案</span><span>时间</span><span>VLN-CE</span><span>NavArena · 矩形</span><span>NavArena · 圆形</span></div><div><b>常规联合训练</b><b>44 h</b><b>88%</b><b>92%</b><b>56%</b></div><div class="ours"><b>Cached traj_latent</b><b>4.8 h</b><b>85%</b><b>89%</b><b>55%</b></div></div>
+      <figure class="asset-figure result-img"><img src="../assets/对比不同输出形式的影响.png" alt="显式 Pixel Goal 与 Latent Goal 输出形式消融"><figcaption>显式 Pixel Goal 提供稳定锚点；Latent Goal 让 System-1 主动读取更丰富的语义条件。</figcaption></figure>
+    </section>
+
+    <section class="chapter tint" id="demos">
+      <div class="section-head"><span>08 / DEMOS</span><div><h2>从仿真到真实世界</h2><p>每个案例只回答一个问题：能否理解方向、完成长距离导航，以及失败在哪里。</p></div></div>
+      <div class="demo-grid">
+        <article><video controls muted preload="metadata" poster="../assets/05_object_goal_and_waypoint.jpg"><source src="../assets/0013-web.mp4" type="video/mp4"><source src="../assets/0013.mp4" type="video/mp4"></video><div><span>HABITAT · SUCCESS</span><h3>0013 · 偏离参考轨迹后恢复</h3><p>没有机械跟随参考路径，但能理解目标点方位并重新找到目标。</p></div></article>
+        <article><video controls muted preload="metadata"><source src="../assets/0043-web.mp4" type="video/mp4"><source src="../assets/0043.mp4" type="video/mp4"></video><div><span>HABITAT · SUCCESS</span><h3>0043 · 长距离导航</h3><p>在更长的时序中持续更新局部目标，最终到达。</p></div></article>
+        <article><video controls muted preload="metadata"><source src="../assets/2azQ1b91cZZ_1242.mp4" type="video/mp4"></video><div><span>HABITAT · FAILURE</span><h3>1242 · 错误早停</h3><p>失败案例保留完整上下文，用于分析 STOP 判定与后续 DAgger 回流。</p></div></article>
+      </div>
+      <div class="demo-note"><b>展示原则</b><span>成功案例证明能力边界，失败案例暴露 STOP 判定问题；未取得可公开素材的 Inter GS、重建场景与真机结果不使用占位视频冒充证据。</span></div>
+    </section>
+  </main>
+  <footer><b>DUALNAV</b><span>Semantic brain × Motion cerebellum · Camera-only embodied navigation</span><a href="../navigation-agent/">查看上层 Agent →</a></footer>
+  <script src="app.js"></script>
+</body>
+</html>

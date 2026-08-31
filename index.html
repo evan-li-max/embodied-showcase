@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="具身智能与视觉语言导航项目展示">
+  <title>Embodied Intelligence · Project Showcase</title>
+  <style>
+    :root{--bg:#071015;--panel:#0d1920;--ink:#e8f0ef;--muted:#91a4a6;--line:#233a3e;--accent:#5dd6ba}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 80% 0,#123139 0,transparent 34%),var(--bg);color:var(--ink);font:16px/1.7 Inter,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}main{width:min(1100px,calc(100% - 36px));margin:auto;padding:90px 0}.eyebrow{color:var(--accent);font-size:11px;letter-spacing:.18em}h1{max-width:800px;margin:18px 0 16px;font-size:clamp(42px,8vw,76px);line-height:1.06;letter-spacing:-.055em}header p{max-width:670px;color:var(--muted);font-size:18px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:64px}.card{display:flex;min-height:350px;flex-direction:column;padding:27px;border:1px solid var(--line);border-radius:15px;background:#0d1920dd;color:inherit;text-decoration:none;transition:.2s}.card:hover{transform:translateY(-5px);border-color:var(--accent);background:#102229}.card small{color:var(--accent);font:10px/1.4 monospace}.card h2{margin:20px 0 8px;font-size:27px;line-height:1.15}.card p{color:var(--muted);margin:0}.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px}.tags span{padding:4px 8px;border:1px solid var(--line);border-radius:99px;font-size:9px}.card b{margin-top:auto;color:var(--accent);font-size:12px}footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:10px}@media(max-width:760px){main{padding:60px 0}.grid{grid-template-columns:1fr;margin-top:44px}.card{min-height:280px}}
+  </style>
+</head>
+<body><main>
+  <header><span class="eyebrow">EMBODIED INTELLIGENCE · PROJECT SHOWCASE</span><h1>让机器人理解世界，并在其中行动</h1><p>围绕视觉语言导航、具身数据与真机部署的三个项目案例。每个页面独立讲述问题、方法、系统管线、实验与 Demo。</p></header>
+  <section class="grid">
+    <a class="card" href="navigation-agent/"><small>EMBODIED AGENT</small><h2>HomeClean Agent</h2><p>面向全屋捡垃圾任务的导航 Agent，用语义规划、工具编排与分层记忆打通长时序真机闭环。</p><div class="tags"><span>ReAct</span><span>Tool Use</span><span>Memory</span></div><b>进入项目 →</b></a>
+    <a class="card" href="zbl-navigation/"><small>END-TO-END VLN</small><h2>DualNav</h2><p>面向长时序具身任务的大小脑端到端导航模型，以 Pixel Goal 连接语义规划和运动执行。</p><div class="tags"><span>Dual System</span><span>Pixel Goal</span><span>DAgger</span></div><b>进入项目 →</b></a>
+    <a class="card" href="jd-embodied/"><small>DATA × DEPLOYMENT</small><h2>EmbodiedFlow</h2><p>面向具身智能的多模态数据引擎与云边真机推理系统，连接数据生产、模型验证和机器人执行。</p><div class="tags"><span>Data Engine</span><span>VLA</span><span>Sim2Real</span></div><b>进入项目 →</b></a>
+    <a class="card" href="zex-navigation/"><small>OPEN-VOCABULARY NAVIGATION</small><h2>SceneGraphNav</h2><p>分层多模态场景图驱动的零样本目标导航系统，结合快慢语义检索与主动探索。</p><div class="tags"><span>HMSG</span><span>Concept-Graphs</span><span>VLFM</span></div><b>进入项目 →</b></a>
+  </section>
+  <footer>Project pages are under active refinement · Public content pending final review</footer>
+</main></body></html>

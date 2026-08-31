@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Navigation Brain：将自然语言任务转为可执行导航子任务，并在仿真与真机形成可审计闭环">
+  <title>Navigation Brain · 任务级具身智能</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="media.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top">Navigation Brain</a>
+    <nav><a href="#why">定位</a><a href="#task">真机</a><a href="#system">系统</a><a href="#evaluation">评测</a><a href="#failures">复盘</a></nav>
+    <button id="presentBtn" type="button">演示模式</button>
+  </header>
+
+  <main id="top">
+    <section class="hero chapter">
+      <div class="hero-copy">
+        <span class="eyebrow">AGENTIC VLN · PLAN × ACT × VERIFY</span>
+        <h1>把一句自然语言，<br><em>变成可验证的行动链</em></h1>
+        <p class="lead">面向开放室内环境的任务级导航大脑：理解意图，拆分 point / object goal，组合记忆、视觉、探索与真机控制工具，并在每次真实反馈后重新决策。</p>
+        <div class="actions"><a class="primary" href="#task">查看任务闭环</a><a href="#failures">查看失败复盘</a></div>
+      </div>
+      <div class="hero-map" aria-label="全屋清洁任务轨迹示意">
+        <div class="room a">客厅<span>垃圾 01</span></div><div class="room b">走廊</div><div class="room c">卧室<span>垃圾 02</span></div><div class="room d">厨房<b>垃圾桶</b></div>
+        <i class="route one"></i><i class="route two"></i><div class="bot">AGENT</div>
+      </div>
+      <div class="facts">
+        <div><small>决策方式</small><b>一步一行动的 ReAct</b></div><div><small>任务接口</small><b>Point Goal + Object Goal</b></div>
+        <div><small>评测原则</small><b>Reach ∧ Object</b></div><div><small>工程规模</small><b>207 Python · 50 Test Files</b></div>
+      </div>
+    </section>
+
+    <section class="chapter" id="why">
+      <div class="heading"><span>01</span><div><h2>为什么导航需要 Agent？</h2><p>导航解决“如何到达”，Agent 负责理解“要做什么、先做什么，以及失败后怎么办”。</p></div></div>
+      <div class="comparison">
+        <article><small>TRADITIONAL NAVIGATION</small><h3>成熟能力，封装为工具</h3><ul><li>定位、建图与路径规划</li><li>给定目标点后的运动控制</li><li>局部避障与到达判断</li></ul></article>
+        <article class="accent"><small>AGENT LAYER</small><h3>补齐任务级决策</h3><ul><li>理解模糊、语义化需求</li><li>拆分有先后依赖的子任务</li><li>结合视觉、记忆主动探索</li><li>根据工具反馈重规划并终止任务</li></ul></article>
+      </div>
+      <div class="capabilities">
+        <article><b>语义理解</b><p>把“把全屋垃圾收起来”转化为可执行目标，而不是要求用户给出坐标。</p></article>
+        <article><b>分层记忆</b><p>短期保存当前目标与最近观察，长期保存物体 Pose、探索区域和处理状态。</p></article>
+        <article><b>主动探索</b><p>地图检索未命中时，结合视觉推理与覆盖状态选择下一处搜索区域。</p></article>
+        <article><b>失败恢复</b><p>工具失败后保留原因，调整接近点、观察位姿或搜索策略再执行。</p></article>
+        <article><b>任务泛化</b><p>同一组工具可组合出新的任务流程，减少为语义异常逐项手写分支。</p></article>
+      </div>
+      <aside class="corner"><b>Corner Case</b><span>已知位置没有垃圾桶</span><i>→</i><span>检测结果为空</span><i>→</i><span>切换主动探索</span><i>→</i><span>发现候选并继续任务</span></aside>
+    </section>
+
+    <section class="chapter tint" id="task">
+      <div class="heading"><span>02</span><div><h2>为什么选择“全屋捡垃圾”？</h2><p>它不是单点能力演示，而是一条能够同时暴露感知、导航、操作、记忆和任务规划问题的完整链路。</p></div></div>
+      <div class="media main-media has-video"><video controls preload="metadata" playsinline><source src="demo-web.mp4" type="video/mp4">当前浏览器不支持 MP4 视频。</video><div class="media-caption"><b>全屋捡垃圾 · 3× 加速 Demo</b><span>720p 网页压缩版 · 原始任务约 8 分 51 秒</span></div></div>
+      <div class="why-demo"><span>顺序约束</span><span>未知目标数量</span><span>多工具协同</span><span>动态物体位置</span><span>错误逐级传播</span><span>终止条件判断</span></div>
+      <div class="timeline">
+        <article><i>01</i><b>寻找垃圾桶</b><p>优先查空间记忆，未命中则探索；检测确认目标。</p><small>检索 · 检测 · 探索</small></article>
+        <article><i>02</i><b>靠近并拿起</b><p>生成可达接近点，导航到位后调用抓取能力。</p><small>接近点 · 导航 · 操作</small></article>
+        <article><i>03</i><b>全屋找垃圾</b><p>结合房间覆盖状态搜索，避免回到已完成区域。</p><small>视觉 · 覆盖记忆</small></article>
+        <article><i>04</i><b>定位与拾取</b><p>检测小目标，结合深度获得三维位置并执行拾取。</p><small>YOLO-World · Depth</small></article>
+        <article><i>05</i><b>投入垃圾桶</b><p>过滤手持桶区域，避免把桶内垃圾识别成新目标。</p><small>Mask · 手持物体滤除</small></article>
+        <article><i>06</i><b>继续或结束</b><p>检查未处理目标和探索覆盖，完成后把桶放回。</p><small>状态检查 · 终止判断</small></article>
+      </div>
+    </section>
+
+    <section class="chapter" id="system">
+      <div class="heading"><span>03</span><div><h2>Agent 如何组织这些能力？</h2><p>高层只处理任务状态和工具选择；底层导航、感知与操作保持模块化、可观测和可验证。</p></div></div>
+      <div class="architecture">
+        <div class="node input">用户需求<br><small>“把全屋垃圾收进垃圾桶”</small></div><i>↓</i>
+        <div class="agent"><small>任务大脑</small><b>ReAct Agent</b><div><span>观察</span><span>推理</span><span>行动</span><span>检查</span></div></div><i>↓</i>
+        <div class="memory-row"><div><b>短期记忆</b><small>当前目标 · 最近图像<br>工具结果 · 执行状态</small></div><div><b>长期记忆</b><small>垃圾 / 桶 Pose · 已探索区域<br>处理状态 · 失败经验</small></div></div><i>↓</i>
+        <div class="tools"><div><b>语义地图</b><small>检索 · 空间记忆</small></div><div><b>视觉感知</b><small>检测 · VLM · 深度</small></div><div><b>导航</b><small>接近点 · 规划 · 控制</small></div><div><b>操作</b><small>抓取 · 投放 · 放回</small></div></div>
+      </div>
+      <blockquote>Agent 能完成编排与重规划，但系统上限最终由可调用工具的可靠性决定。</blockquote>
+    </section>
+
+    <section class="chapter tint" id="decisions">
+      <div class="heading"><span>04</span><div><h2>关键技术决策</h2><p>不追求所有问题都交给大模型，而是根据频率、稳定性和空间精度选择合适工具。</p></div></div>
+      <div class="decision-grid">
+        <article><span>GROUNDING</span><h3>地图没写，不等于世界里没有</h3><p>语义库用于给出可靠先验；检索未命中时，Agent 进入相关房间并调用视觉或 NBV 主动观察，避免把“未知”误判成“不存在”。</p><div class="evidence"><b>Map → Vision → Evidence</b><small>先检索 · 再观察 · 最后下结论</small></div></article>
+        <article><span>MEMORY</span><h3>记忆是空间状态，不是聊天记录</h3><p>Map 保存环境真值，working buffer 保存当前会话，长期经验按需召回；关键帧作为视觉记忆独立索引，不让原始观察淹没上下文。</p><div class="evidence"><b>Index before Recall</b><small>结构化索引 · Entity Link · 按需读取</small></div></article>
+        <article><span>ACTIVE VISION</span><h3>LLM 低频决策，感知服务高频闭环</h3><p>Target-driven Semantic NBV 在房间级体素地图中选择下一观察位姿；RGB-D、位姿与局部建图留在服务侧，不把大块传感数据塞进 LLM。</p><div class="evidence"><b>Room → Frontier → NBV</b><small>语义目标驱动 · 有状态探索</small></div></article>
+      </div>
+      <div class="media-pair"><figure class="media image-media"><img src="assets/agent-flow.png" alt="导航 Agent 任务流程图"><figcaption><b>Agent 任务流程</b><span>从任务规划到感知、导航和操作工具执行</span></figcaption></figure><div class="media evidence-panel"><b>每次运行都能被复盘</b><span>reasoning.jsonl · reasoning.md · summary · 审计帧</span><p>思考、工具调用、真实下发子任务与观察结果按步保存，评测与故障定位使用同一条证据链。</p></div></div>
+    </section>
+
+    <section class="chapter" id="evaluation">
+      <div class="heading"><span>05</span><div><h2>评测的不是“说对了”，而是“真的到达”</h2><p>在 NavArena 真仿真中，从语义地图自动生产题目；到达和物体指向分别判定，两轴同时通过才计任务成功。</p></div></div>
+      <div class="eval-equation"><span>SR<sub>task</sub></span><b>=</b><span>Reach</span><b>∧</b><span>Object</span></div>
+      <div class="eval-grid">
+        <article><small>EXPLICIT</small><h3>显式目标</h3><p>房间和物体均明确，检查基础 grounding、同名物体跨房消歧与到达能力。</p></article>
+        <article><small>OPEN</small><h3>开放描述</h3><p>由自然语言表达意图，结合规则和完整执行轨迹进行判定。</p></article>
+        <article><small>OPEN · HARD</small><h3>困难开放题</h3><p>覆盖隐含需求、组合条件与更强歧义，保留人工 review 记录。</p></article>
+      </div>
+      <div class="pipeline"><b>Fact Sheet</b><i>→</i><b>种子采样</b><i>→</i><b>LLM 造句</b><i>→</i><b>硬规则过滤</b><i>→</i><b>LLM 自审</b><i>→</i><b>挂载 GT</b><i>→</i><b>校验闸门</b></div>
+      <p class="source-note">当前仓库包含 30 条基准用例、16 条自动生成用例与 12 条 Open-Hard 用例；页面只陈述数据与判分设计，不以未发布跑分代替结果。</p>
+    </section>
+
+    <section class="chapter" id="failures">
+      <div class="heading"><span>06</span><div><h2>真机失败如何转化为系统改进？</h2><p>每类异常都对应可执行守卫、明确结果码和可回放证据，而不是一句“重试”。</p></div></div>
+      <div class="failure-table">
+        <div class="table-head"><span>现象</span><span>根因</span><span>解决措施</span><span>验证证据</span></div>
+        <div><b>远处垃圾无法定位</b><span>远距离深度空洞或误差大</span><span>深度补全；距离阈值；近距离二次确认</span><em>有效深度率 / 定位误差</em></div>
+        <div><b>机器人卡住</b><span>路径局部不可执行或底盘失去进展</span><span>检测 stuck；停止后重发，最多 2 次</span><em>stuck / timeout 结果码</em></div>
+        <div><b>重复搜索同一垃圾</b><span>缺少带状态的空间目标记忆</span><span>保存垃圾 Pose，并标记待处理、已拾取或误检</span><em>重复访问次数 / 搜索时长</em></div>
+        <div><b>桶内垃圾被再次检测</b><span>检测器不了解任务状态和容器关系</span><span>用垃圾桶检测框 Mask 图像；结合深度与手持区域过滤</span><em>桶内误检率</em></div>
+        <div><b>手持垃圾桶成为障碍</b><span>障碍地图未区分环境与携带物</span><span>接入手持物体滤除，再更新局部障碍信息</span><em>携桶导航成功率</em></div>
+        <div><b>长任务上下文膨胀</b><span>图像与原始工具日志持续累积</span><span>滑动窗口、结构化摘要与按需记忆检索</span><em>Token / 延迟 / 完成率</em></div>
+      </div>
+      <div class="failure-media"><figure class="media image-media"><div class="image-pair"><img src="assets/filter-before.jpg" alt="垃圾桶区域过滤前"><img src="assets/filter-after.jpg" alt="垃圾桶区域过滤后"></div><figcaption><b>垃圾桶区域过滤</b><span>过滤桶内垃圾与手持区域，避免重复检测</span></figcaption></figure><figure class="media image-media"><div class="image-pair"><img src="assets/depth-hole.jpg" alt="存在空洞的深度图"><img src="assets/depth-completed.png" alt="深度补全结果"></div><figcaption><b>深度安全守卫</b><span>前方中值深度低于 0.55 m 时阻断继续运动</span></figcaption></figure><div class="media guard-card"><b>真机执行守卫</b><span>到达容差 2 m · 重试 ≤ 2 · 深度阈值 0.55 m</span><p>completed / timeout / stuck / depth_blocked / rejected / skipped</p></div></div>
+    </section>
+
+    <section class="chapter tint" id="contribution">
+      <div class="heading"><span>07</span><div><h2>从原型到可运行系统</h2><p>工作覆盖 Agent 策略、工具协议、记忆与主动感知、真机执行和评测数据闭环。</p></div></div>
+      <div class="contribution-grid">
+        <article><h3>我的核心工作</h3><ul><li>导航 Agent 的任务拆解、工具接口与执行反馈闭环</li><li>短期/长期记忆、主动探索和目标 Pose 状态管理</li><li>垃圾检测微调、深度定位及垃圾桶区域过滤</li><li>真机失败归因、工具链时延优化与回归验证</li></ul></article>
+        <article><h3>得到的技术判断</h3><ul><li>Agent 擅长任务级编排，不能替代可靠的空间工具</li><li>VLM 的语义泛化不能直接替代高频小目标检测</li><li>任务记忆应是结构化空间状态，而不只是对话历史</li><li>失败轨迹应进入下一轮测试和数据闭环</li></ul></article>
+      </div>
+      <div class="next"><div><small>NEXT STEP</small><h3>Coding Agent 辅助研发闭环</h3><p>离线分析日志、视频和工具轨迹，自动聚类失败原因，生成回归测试与数据处理脚本，并把典型失败沉淀为 hard cases。所有代码修改和真机部署仍经过人工审核。</p></div><div class="next-flow"><span>真机轨迹</span><i>→</i><span>失败归因</span><i>→</i><span>测试 / 数据</span><i>→</i><span>人工审核</span><i>→</i><span>回归验证</span></div></div>
+    </section>
+  </main>
+  <footer><span>Navigation Brain · Agentic VLN</span><a href="../zbl-navigation/">查看底层导航模型 →</a></footer>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
