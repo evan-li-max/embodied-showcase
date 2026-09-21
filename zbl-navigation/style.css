@@ -54,3 +54,9 @@
 .train-compare .after{background:#b9ef43;color:#101817;border-color:#101817}
 .train-compare .after span,.train-compare .after p,.train-compare .after h3{color:#101817}
 .train-compare .after strong small{color:#101817;font-size:16px;font-weight:800}
+.talk-agenda{grid-column:1/-1;display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:8px 0 12px;padding:0;list-style:none}
+.talk-agenda li{display:flex;flex-direction:column;gap:6px;padding:14px 12px;background:#b9ef43;color:#101817;min-height:88px}
+.talk-agenda b{font:800 12px/1 monospace}
+.talk-agenda span{font-size:13px;font-weight:700}
+@media(max-width:900px){.talk-agenda{grid-template-columns:1fr 1fr 1fr}}
+@media(max-width:580px){.talk-agenda{grid-template-columns:1fr 1fr}}

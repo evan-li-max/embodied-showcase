@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="DualNav / π0.5-nav：Pixel Goal 连接视觉语言推理与连续轨迹执行">
+  <meta name="description" content="DualNav：用 Pixel Goal 把语义规划接到连续轨迹。问题驱动的导航底座。">
   <title>DualNav · 通用具身导航底座</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -11,15 +11,14 @@
   <header class="site-head">
     <a class="brand" href="#top"><i></i> DUALNAV</a>
     <nav>
-      <a href="#why">WHY</a>
-      <a href="#system">SYSTEM</a>
-      <a href="#innovation">DESIGN</a>
-      <a href="#labeling">DATA</a>
-      <a href="#dualnav">DUALNAV</a>
-      <a href="#pi05">PI0.5</a>
-      <a href="#multicam">CAM</a>
-      <a href="#results">RESULTS</a>
-      <a href="#demos">DEMOS</a>
+      <a href="#problem">问题</a>
+      <a href="#system">方案</a>
+      <a href="#semantic">语义</a>
+      <a href="#motion">运动</a>
+      <a href="#schedule">调度</a>
+      <a href="#robot">真机</a>
+      <a href="#next">下一步</a>
+      <a href="#proof">结果</a>
     </nav>
     <button class="present-btn" id="presentBtn">演示模式</button>
   </header>
@@ -27,11 +26,11 @@
   <main id="top">
     <section class="hero chapter">
       <div class="hero-copy">
-        <span class="eyebrow">CAMERA-ONLY · BEV · PIXEL GOAL</span>
+        <span class="eyebrow">一条线讲完：问题 → 接口 → 迭代 → 真机</span>
         <h1>听懂任务，<br><em>也知道往哪走。</em></h1>
-        <p class="lead">点导航 · 物体导航 · 指令跟随。给面试官讲清楚：我做了什么、为什么这么做、数字从哪来。机器人输入只有：<b>RGB</b>、<b>定位 / 目标点</b>、<b>文本</b>。</p>
-        <div class="hero-route"><span>语言任务</span><i>→</i><span>Pixel Goal</span><i>→</i><span>连续轨迹</span></div>
-        <a class="button primary" href="#system">进入系统设计 ↓</a>
+        <p class="lead">我做的是相机-only 导航底座。输入只有 <b>RGB</b>、<b>定位 / 目标点</b>、<b>文本</b>。上层拆任务，这里统一走点导航、物体导航、指令跟随。</p>
+        <div class="hero-route"><span>语言</span><i>→</i><span>Pixel Goal</span><i>→</i><span>连续轨迹</span></div>
+        <a class="button primary" href="#problem">按这条线往下讲 ↓</a>
       </div>
       <div class="hero-stage">
         <div class="scope"><small>HARD CASE · BEV</small><b>LONG-HORIZON NAV</b></div>
@@ -39,161 +38,135 @@
           <source src="assets/0043-web.mp4" type="video/mp4">
           <source src="assets/0043.mp4" type="video/mp4">
         </video>
-        <div class="mode-list"><span>RGB</span><span>POSE / GOAL</span><span>INSTRUCTION</span><span>NO LiDAR</span></div>
+        <div class="mode-list"><span>RGB</span><span>POSE / GOAL</span><span>TEXT</span><span>NO LiDAR</span></div>
       </div>
-      <figure class="asset-figure dark hero-input"><img src="assets/robot_inputs.png" alt="机器人输入：RGB、定位、目标文本"><figcaption>观测约束：RGB + 定位/目标点 + 文本指令。</figcaption></figure>
-      <div class="metrics-strip"><div><b>84%</b><span>双系统推理修正</span></div><div><b>78%</b><span>碰撞距 10 cm</span></div><div><b>72%</b><span>Pixel Traj · 500ep</span></div><div><b>−27%</b><span>DataLoader 23→18 s/it</span></div></div>
+      <ol class="talk-agenda">
+        <li><b>01</b><span>问题与输入</span></li>
+        <li><b>02</b><span>大小脑 + Pixel</span></li>
+        <li><b>03</b><span>语义怎么会导航</span></li>
+        <li><b>04</b><span>运动怎么不撞</span></li>
+        <li><b>05</b><span>记忆、调度、训练</span></li>
+        <li><b>06</b><span>真机与下一步</span></li>
+      </ol>
+      <figure class="asset-figure dark hero-input"><img src="assets/robot_inputs.png" alt="机器人输入"><figcaption>约束先说清：没有地图、没有激光。</figcaption></figure>
     </section>
 
-    <section class="chapter" id="why">
-      <div class="section-head"><span>01 / WHY</span><div><h2>极限不在“走不到”</h2><p>而在换任务、换本体就要重做接口。</p></div></div>
+    <section class="chapter" id="problem">
+      <div class="section-head"><span>01 / 问题</span><div><h2>难的不是“走得到”</h2><p>是换任务、换本体就要重做接口。所以先定一句话：所有任务都交到同一个视觉目标上。</p></div></div>
       <div class="limit-grid">
-        <article><small>01</small><h3>任务泛化</h3><p>坐标规划无法统一“最近的椅子 / 过走廊后左转”。</p></article>
-        <article><small>02</small><h3>语义探索</h3><p>目标出视野 = 推断该去哪找，不是纯搜路。</p></article>
-        <article><small>03</small><h3>跨本体</h3><p>Pixel Goal 落在图像，比直接控轮更接近本体无关接口。</p></article>
-        <article><small>04</small><h3>低传感器</h3><p>相机完成语义 + 决策，降地图 / 激光 / 标定成本。</p></article>
+        <article><small>任务</small><h3>目标形态不统一</h3><p>坐标、物体名、一句话指令，传统规划各接一套。</p></article>
+        <article><small>探索</small><h3>目标经常不在视野里</h3><p>要推断该去哪找，不是纯搜路。</p></article>
+        <article><small>本体</small><h3>直接控轮绑死机器人</h3><p>像素里的目标更接近跨本体接口。</p></article>
+        <article><small>传感</small><h3>只靠相机</h3><p>降地图、激光、精密标定成本。</p></article>
       </div>
     </section>
 
     <section class="chapter tint" id="system">
-      <div class="section-head"><span>02 / SYSTEM</span><div><h2>大小脑：慢规划 + 快执行</h2><p>语义要看得远；运动要反应快。中间接口：Pixel Goal + Latent Goal。</p></div></div>
+      <div class="section-head"><span>02 / 方案</span><div><h2>慢规划，快执行，中间只交 Pixel Goal</h2><p>语义要看得远；运动要反应快。显式像素可检查，隐式 latent 补容量。</p></div></div>
       <div class="brain-layout">
-        <div class="brain-card sys2"><span>SYSTEM–2 · SLOW</span><h3>语义大脑</h3><p>指令 · 历史 · 当前视觉 → 方位 / 探索方向。</p><div class="tags"><i>VLM</i><i>History</i><i>Pixel</i></div></div>
-        <div class="bridge"><small>EXPLICIT</small><b>PIXEL GOAL</b><span>( u, v )</span><i>+</i><small>IMPLICIT</small><b>LATENT GOAL</b><span>4 queries</span></div>
-        <div class="brain-card sys1"><span>SYSTEM–1 · FAST</span><h3>运动小脑</h3><p>连续轨迹 · 局部避障 · 本体动力学。</p><div class="tags"><i>DiT</i><i>Depth</i><i>Traj</i></div></div>
+        <div class="brain-card sys2"><span>SLOW · 语义</span><h3>大脑</h3><p>指令 · 历史 · 当前画面 → 往哪走、要不要转。</p><div class="tags"><i>VLM</i><i>History</i><i>Pixel</i></div></div>
+        <div class="bridge"><small>EXPLICIT</small><b>PIXEL GOAL</b><span>( u, v )</span><i>+</i><small>IMPLICIT</small><b>LATENT ×4</b></div>
+        <div class="brain-card sys1"><span>FAST · 运动</span><h3>小脑</h3><p>连续轨迹 · 局部避障 · 按真实车体走。</p><div class="tags"><i>DiT</i><i>Depth</i><i>Traj</i></div></div>
       </div>
-      <figure class="asset-figure dark"><img src="assets/架构图参考_dualvln.png" alt="DualVLN 大小脑架构"><figcaption>Sys2 出显式/隐式目标，Sys1 落成可执行轨迹。</figcaption></figure>
+      <figure class="asset-figure dark"><img src="assets/架构图参考_dualvln.png" alt="大小脑架构"><figcaption>后面所有迭代都挂在这两端：语义输出对不对，运动贴不贴障。</figcaption></figure>
     </section>
 
-    <section class="chapter" id="innovation">
-      <div class="section-head"><span>03 / DESIGN</span><div><h2>三个设计，让 VLM 真正“会导航”</h2><p>问题驱动：打转、输出空间混乱、近场看不见脚边。</p></div></div>
+    <section class="chapter" id="semantic">
+      <div class="section-head"><span>03 / 语义</span><div><h2>先让模型“会导航”，再谈标注怎么来</h2><p>三件事：别打转、所有任务同一像素、头看物体底盘定脚。然后自动标，并改掉最远点贴墙。</p></div></div>
       <div class="design-stack">
         <article class="feature reverse">
-          <div class="feature-no">A</div>
+          <div class="feature-no">1</div>
           <div>
-            <span class="eyebrow">FAILURE FIRST</span>
-            <h3>原地打转 / 左右摆动 → 先前进，再转向</h3>
-            <p>目标已在视野内仍左右扫、原地转。约束：<b>可见点优先前进</b>；看不见才转向哨兵；&lt;1 m STOP。</p>
+            <span class="eyebrow">失败：原地打转</span>
+            <h3>可见就前进，看不见才转</h3>
+            <p>目标已在画面里仍左右扫。先验：可见点优先前进；出视野才转向；&lt;1 m 停止。仿真里再加后处理：转过了且目标可见 → 强制走运动模块。</p>
             <div class="priority"><span>VISIBLE → FORWARD</span><i>›</i><span>OUT OF VIEW → TURN</span><i>›</i><span>&lt; 1 m → STOP</span></div>
             <video class="issue-video" controls muted preload="metadata"><source src="assets/2azQ1b91cZZ_0044.mp4" type="video/mp4"></video>
-            <small class="issue-video-note">失败：振荡打转 → Prompt 先验 + 仿真后处理。</small>
-            <figure class="asset-figure inner"><img src="assets/spin_postprocess.png" alt="打转后处理"><figcaption>PointNav：过度旋转且目标已在视野内 → 强制 Sys1 推进，不再让 Sys2 发 TURN。</figcaption></figure>
+            <figure class="asset-figure inner"><img src="assets/spin_postprocess.png" alt="打转后处理"><figcaption>Prompt 约束方向；后处理兜底推进。</figcaption></figure>
           </div>
         </article>
         <article class="feature">
-          <div class="feature-no">B</div>
+          <div class="feature-no">2</div>
           <div>
-            <span class="eyebrow">UNIFIED OUTPUT</span>
-            <h3>所有任务，统一输出 Pixel Goal</h3>
-            <p>VLM 对像素方位强于机器人坐标。640×480 显式坐标系。点 / 物 / 指令都回归同一个 (u, v)。离散动作信息量低；纯 latent 不可解释。</p>
-            <div class="prompt"><code>[PointNav] Return exactly one pixel goal (u, v).<br>Prefer FORWARD … farthest navigable pixel.<br>(0,240) LEFT · (639,240) RIGHT · (320,479) STOP</code></div>
-            <figure class="asset-figure inner"><img src="assets/对比不同输出形式的影响.png" alt="不同输出形式对比"><figcaption>Pixel Goal = 可解释锚点；Latent = 高容量条件。两者一起用。</figcaption></figure>
+            <span class="eyebrow">接口</span>
+            <h3>点 / 物 / 指令，都出同一个 (u, v)</h3>
+            <p>VLM 对像素方位强于机器人坐标。离散动作信息量低；纯 latent 没法检查。两者一起用。</p>
+            <div class="prompt"><code>[PointNav] Return exactly one pixel goal (u, v).<br>Prefer FORWARD … (0,240) LEFT · (639,240) RIGHT · (320,479) STOP</code></div>
+            <figure class="asset-figure inner"><img src="assets/对比不同输出形式的影响.png" alt="输出形式对比"><figcaption>Pixel = 可解释锚点；Latent = 高容量条件。</figcaption></figure>
           </div>
         </article>
         <article class="feature reverse">
-          <div class="feature-no">C</div>
+          <div class="feature-no">3</div>
           <div>
-            <span class="eyebrow">DUAL CAMERA</span>
+            <span class="eyebrow">观测</span>
             <h3>头看语义，底盘定落脚点</h3>
-            <p>头：高处物体。底盘：近场障碍 / 可行走。Pixel 坐标输出在底盘图。</p>
-            <div class="conversation"><span>&lt;instruction&gt;</span><span>&lt;history × 8&gt;</span><span>head-view</span><b>chassis (u,v)</b></div>
+            <p>头：高处物体。底盘：近场障碍和可行走。像素坐标出在底盘图上。</p>
+            <div class="conversation"><span>instruction</span><span>history</span><span>head</span><b>chassis → (u,v)</b></div>
           </div>
         </article>
       </div>
-    </section>
 
-    <section class="chapter tint" id="labeling">
-      <div class="section-head"><span>04 / DATA</span><div><h2>仿真轨迹 → Pixel Goal 自动标注</h2><p>位姿 + 深度 + 未来轨迹。无需逐帧点击。</p></div></div>
-      <div class="pipeline"><div><small>INPUT</small><b>Pose + RGB + Depth</b></div><i>→</i><div><small>LOOK AHEAD</small><b>未来 200 步</b></div><i>→</i><div><small>PROJECT</small><b>投影底盘图</b></div><i>→</i><div><small>FILTER</small><b>深度去遮挡</b></div><i>→</i><div><small>LABEL</small><b>最远可见 Pixel</b></div></div>
-      <figure class="asset-figure"><img src="assets/montage_label_steps.jpg" alt="PointNav 标注"><figcaption>PointNav：轨迹全不可见 → 离散动作映射为转向 / STOP 哨兵。</figcaption></figure>
-      <figure class="asset-figure"><img src="assets/object_point_montage_label_steps.jpg" alt="ObjectNav 标注"><figcaption>ObjectNav：可见投 3D 物体；不可见退化为最远可见点，继续探索。</figcaption></figure>
-      <h3 class="subresult">失败：最远点贴墙 → 中心点与像素轨迹</h3>
-      <p class="kw">最远可见点常贴障碍边缘。中心点、再加像素轨迹，是同一问题的两级约束。</p>
+      <h3 class="subresult">标注：轨迹投影出来，不靠手点</h3>
+      <p class="kw">位姿 + 深度 + 未来轨迹 → 投影到底盘图 → 去掉遮挡。</p>
+      <div class="pipeline"><div><small>INPUT</small><b>Pose + RGB + Depth</b></div><i>→</i><div><small>LOOK AHEAD</small><b>未来 200 步</b></div><i>→</i><div><small>PROJECT</small><b>投影底盘图</b></div><i>→</i><div><small>FILTER</small><b>深度去遮挡</b></div><i>→</i><div><small>LABEL</small><b>Pixel Goal</b></div></div>
+      <figure class="asset-figure"><img src="assets/montage_label_steps.jpg" alt="PointNav 标注"><figcaption>点导航：轨迹全不可见时，动作映射成转向 / 停止哨兵。</figcaption></figure>
+      <figure class="asset-figure"><img src="assets/object_point_montage_label_steps.jpg" alt="ObjectNav 标注"><figcaption>物体导航：看见就投 3D 物体；看不见就继续用最远可见点探索。</figcaption></figure>
+
+      <h3 class="subresult">失败：最远可见点贴墙</h3>
+      <p class="kw">最远点常落在障碍边缘。先改中心点，再约束整条像素轨迹。只给最终点 53%，3 m 局部点 59% —— 远程终点不够。</p>
       <div class="table-wrap"><table>
-        <caption>Pixel 监督怎么改、涨多少</caption>
-        <thead><tr><th>模块</th><th>改动</th><th>SR</th><th>场景</th></tr></thead>
+        <caption>语义监督这条线怎么涨</caption>
+        <thead><tr><th>失败</th><th>改动</th><th>SR</th></tr></thead>
         <tbody>
-          <tr><td>Pixel Goal</td><td>最远可见 → 中心 pixel</td><td><b>50% → 61%</b></td><td>显著</td></tr>
-          <tr><td>Pixel Goal</td><td>仅中间点（500 ep）</td><td>68%</td><td>—</td></tr>
-          <tr class="ours"><td>Pixel Traj</td><td>可见自由空间采样整条像素轨迹</td><td><b>65% → 72%</b></td><td>500 测试集</td></tr>
+          <tr><td>最远点贴障</td><td>改为中心 pixel</td><td><b>50% → 61%</b></td></tr>
+          <tr><td>只监督一个点仍偏</td><td>仅中间点（500 ep）</td><td>68%</td></tr>
+          <tr class="ours"><td>可通行带没学到</td><td>Pixel Traj：可见自由空间采样</td><td><b>65% → 72%</b></td></tr>
         </tbody>
       </table></div>
-      <figure class="asset-figure"><img src="assets/pixel_traj_why.png" alt="Pixel Traj 动机"><figcaption>最远可见 ≠ 可通行中心。Pixel Traj 约束整条像素轨迹。</figcaption></figure>
-      <p class="kw">仿真 final point 通过率 <b>53%</b>，与 3 m local point <b>59%</b> 接近 → 远程终点单独不够，需要局部点。</p>
+      <figure class="asset-figure"><img src="assets/pixel_traj_why.png" alt="Pixel Traj"><figcaption>最远可见 ≠ 可通行中心。</figcaption></figure>
     </section>
 
-    <section class="chapter" id="dualnav">
-      <div class="section-head"><span>05 / DUALNAV</span><div><h2>每个改进对应一类失败</h2><p>加载、历史、碰撞、本体尺寸。先看见失败，再改系统。</p></div></div>
-
+    <section class="chapter tint" id="motion">
+      <div class="section-head"><span>04 / 运动</span><div><h2>按真实车体走，这条链是累加出来的</h2><p>窄道卡门 → 历史进运动 → 深度碰障 → 参考路径 → 把安全距离收紧。数字挂在同一次评测链上。</p></div></div>
       <div class="table-wrap"><table>
-        <caption>失败 → 改动 → 成功率</caption>
+        <caption>运动这条线怎么涨</caption>
         <thead><tr><th>失败</th><th>改动</th><th>SR</th><th>场景</th></tr></thead>
         <tbody>
-          <tr><td>转弯摆动</td><td>历史位姿 + 语义条件进运动模块</td><td><b>54% → 56%</b></td><td>转弯</td></tr>
+          <tr><td>转弯摆动</td><td>历史位姿 + 语义条件进运动</td><td><b>54% → 56%</b></td><td>转弯</td></tr>
           <tr><td>大弯擦障</td><td>深度碰撞约束</td><td><b>56% → 64%</b></td><td>大弯</td></tr>
-          <tr><td>复杂分叉选错</td><td>每 3 m 一个参考点</td><td><b>64% → 66%</b></td><td>复杂场景</td></tr>
+          <tr><td>分叉选错</td><td>每 3 m 一个参考点</td><td><b>64% → 66%</b></td><td>复杂场景</td></tr>
           <tr class="ours"><td>贴障碍过近</td><td>安全距离 30 cm → 10 cm</td><td><b>66% → 78%</b></td><td>近障</td></tr>
-          <tr><td>历史间隔不对</td><td>最近 80 帧、每 10 帧一张（对照：起点到当前均匀 8 帧）</td><td><b>~+5</b></td><td>局部记忆</td></tr>
-          <tr class="ours"><td>规划与执行同频</td><td>慢规划 + 快执行解耦</td><td><b>76% → 84%</b></td><td>长时执行</td></tr>
         </tbody>
       </table></div>
 
       <article class="improve">
-        <span>失败：转弯摆动 · 54%→56%</span>
-        <h3>历史位姿进运动模块</h3>
-        <p>没有近期怎么走过来的，弯道里会左右扫。先把历史位姿和语义条件接进去，转弯 +2。</p>
+        <span>车体</span>
+        <h3>先承认 footprint：约 0.6 × 0.8 m</h3>
+        <p>点导航的硬点是过窄通道。圆形障碍模型不能直接对比。</p>
+        <figure class="asset-figure"><img src="assets/robot_footprint.jpg" alt="footprint"><figcaption>矩形包络决定擦边。</figcaption></figure>
       </article>
-
       <article class="improve">
-        <span>失败：历史间隔不对 · ~+5</span>
-        <h3>按固定间隔取最近历史，不要从起点拉满均匀采样</h3>
-        <p>对照过两种做法：<b>从起点到当前均匀抽 8 帧</b>（路一长，间隔被拉稀，刚转过的弯几乎看不到）；<b>只看最近一段时间，按固定间隔取帧</b>。实验结论：最近 <b>80 帧、每隔 10 帧一张</b>（8 张），约 +5。要的是「刚才走过的局部」，不是把整段压成 8 个点。</p>
-        <figure class="asset-figure"><img src="assets/history_sample.png" alt="历史抽帧实验"><figcaption>均匀拉满全程 → 间隔失控。固定 stride 落在最近 80 帧上。</figcaption></figure>
+        <span>54% → 56%</span>
+        <h3>运动模块要看见“刚怎么走过来”</h3>
+        <p>没有近期位姿和语义条件，弯里左右扫。先接上，转弯 +2。</p>
       </article>
-
       <article class="improve">
-        <span>失败：大弯擦障 · 56%→64%</span>
-        <h3>用深度约束轨迹，不把深度当成第二套地图</h3>
-        <p>底盘深度变成鸟瞰点云，预测路点离障碍过近就惩罚。大弯提升最明显。仍会偶发倒退轨迹。</p>
-        <figure class="asset-figure"><img src="assets/depth_collision_flow.png" alt="深度碰撞损失流程"><figcaption>安全距离再从 30 cm 收到 10 cm：66%→78%。</figcaption></figure>
+        <span>56% → 64%</span>
+        <h3>深度只用来罚碰撞，不当第二套地图</h3>
+        <p>底盘深度变鸟瞰点云，路点离障过近就惩罚。大弯最明显。仍会偶发倒退。</p>
+        <figure class="asset-figure"><img src="assets/depth_collision_flow.png" alt="碰撞损失"><figcaption>再把安全距离 30→10 cm：66%→78%。</figcaption></figure>
       </article>
-
       <article class="improve">
-        <span>失败：分叉选错 · 64%→66%</span>
-        <h3>每 3 m 一个参考点，只给方向</h3>
-        <p>复杂路口单靠当前画面容易选错支路。稀疏参考点不绑死轨迹。只给最终点通过率 53%，3 m 局部点 59%。</p>
+        <span>64% → 66%</span>
+        <h3>复杂路口：每 3 m 给一个方向点</h3>
+        <p>不绑死轨迹。只给最终点不够，局部点才接近能过。</p>
       </article>
-
-      <article class="improve">
-        <span>失败：规划执行绑死 · 76%→84%</span>
-        <h3>大脑慢、小脑快</h3>
-        <p>语义规划出 Pixel Goal 后冻结；运动模块在锚点上高频更新。训练与推理同一套调度。</p>
-        <figure class="asset-figure dark"><img src="assets/dual_rate_infer.png" alt="双系统推理频率"><figcaption>同频既浪费语义模型，轨迹也不稳。解耦后 +8。</figcaption></figure>
-      </article>
-
-      <article class="improve">
-        <span>失败：训练吞吐低 · 23s → 18s / iter（−27%）</span>
-        <h3>加载：按条采样、缓存、少拷图</h3>
-        <ul class="kw">
-          <li><b>按 episode 采样</b>，避免大场景把数据分布绑死。</li>
-          <li><b>索引一次、多卡共享</b>，启动不再反复扫盘。</li>
-          <li><b>图像预处理不重复拷贝</b>，读图路径合并。</li>
-          <li><b>历史图改用底盘</b>，和落脚点、近场障碍同一坐标系。</li>
-        </ul>
-      </article>
-
-      <article class="improve">
-        <span>失败：窄道卡门</span>
-        <h3>按真实 footprint 评测 · 约 0.6 × 0.8 m</h3>
-        <figure class="asset-figure"><img src="assets/robot_footprint.jpg" alt="机器人 footprint"><figcaption>矩形包络决定擦边。圆形障碍模型不能直接对比。</figcaption></figure>
-      </article>
-
       <div class="issue-grid">
         <article>
-          <span>失败：轨迹外凸撞障</span>
-          <h3>Bezier 收尖角</h3>
-          <p>平滑拐点与局部外凸。</p>
-          <img class="collision-figure" src="assets/bezier_example.jpg" alt="Bezier 轨迹优化">
+          <span>后处理</span>
+          <h3>Bezier 收外凸</h3>
+          <p>拐点外凸会刮障。</p>
+          <img class="collision-figure" src="assets/bezier_example.jpg" alt="Bezier">
         </article>
         <article>
           <span>基座</span>
@@ -202,114 +175,126 @@
           <div class="model-row"><b>4B</b><em>开源常用</em><strong>76%</strong></div>
         </article>
       </div>
+    </section>
 
-      <h3 class="subresult">真机上仍在攻的三类失败</h3>
+    <section class="chapter" id="schedule">
+      <div class="section-head"><span>05 / 调度</span><div><h2>记忆按间隔取；大脑慢、小脑快；语义只算一次</h2><p>前面把“往哪走、别撞”做对。这里解决：历史怎么用、推理频率、训练怎么扛得住。</p></div></div>
+
+      <article class="improve">
+        <span>历史 · ~+5</span>
+        <h3>不要从起点均匀抽满 8 帧</h3>
+        <p>路一长，间隔被拉稀，刚转的弯看不见。对照实验：<b>最近 80 帧、每隔 10 帧一张</b>（固定间隔），约 +5。要的是刚才走过的局部。</p>
+        <figure class="asset-figure"><img src="assets/history_sample.png" alt="历史间隔"><figcaption>均匀拉满全程 → 间隔失控。固定 stride 落在最近窗口。</figcaption></figure>
+      </article>
+
+      <article class="improve">
+        <span>推理 · 76% → 84%</span>
+        <h3>语义和运动必须不同频</h3>
+        <p>规划出 Pixel 后冻结，运动在锚点上高频更新。训练和推理同一套调度。同频既浪费语义模型，轨迹也不稳。</p>
+        <figure class="asset-figure dark"><img src="assets/dual_rate_infer.png" alt="双频推理"><figcaption>解耦后 +8。</figcaption></figure>
+      </article>
+
+      <h3 class="subresult">训练：慢思考只跑一次</h3>
+      <div class="token-sequence"><span>system</span><span>vision</span><span>user</span><b>latent ×4</b><em>answer</em></div>
+      <div class="train-compare">
+        <div><span>BEFORE</span><h3>每个 epoch 重跑视觉语言模型</h3><p>规划和执行绑在一起，算力耗在重复前向。</p><strong>44 h</strong></div>
+        <i>→</i>
+        <div class="after"><span>OURS</span><h3>语义结果离线缓存</h3><p>运动模块读缓存，自己迭代。</p><strong>4.8 h <small>8.3×</small></strong></div>
+      </div>
+      <figure class="asset-figure latent-query-figure"><img src="assets/latent_query_method.png" alt="Latent query"><figcaption>四个可学习 query 从语言模型里把导航条件读出来。</figcaption></figure>
+
+      <article class="improve">
+        <span>加载 · 23s → 18s / iter（−27%）</span>
+        <h3>训得动：按条采样、索引缓存、少拷图</h3>
+        <ul class="kw">
+          <li>按 episode 采样，避免大场景绑死分布。</li>
+          <li>索引一次多卡共享，启动不反复扫盘。</li>
+          <li>图像预处理不重复拷贝；历史图改用底盘，和落脚点同一坐标系。</li>
+        </ul>
+      </article>
+      <p class="kw">仿真评测 GPU 大约只用 20%：环境步进偏串行，并行后才能喂满卡。</p>
+    </section>
+
+    <section class="chapter tint" id="robot">
+      <div class="section-head"><span>06 / 真机</span><div><h2>为什么还有 π0.5：机器人数据上已经预训练过</h2><p>同一套导航任务，换成一次前向出轨迹。部署用云边；动作跳变用 RTC 接上。</p></div></div>
+      <figure class="asset-figure"><img src="assets/pi05_structure.png" alt="π0.5"><figcaption>视觉 + 离散状态 token → Action Expert 流匹配。不新建 DiT 头。</figcaption></figure>
+      <div class="io-grid">
+        <article><span>IN</span><h3>输入</h3><ul><li>头 / 底盘当前 RGB</li><li>历史帧</li><li>8 个历史位姿 + 目标 (gx, gy)</li><li>点导航文本</li></ul></article>
+        <article><span>TOKEN</span><h3>状态怎么进模型</h3><p>26 维状态离散成文本 token，走语言通路，不是连续向量硬塞进 expert。</p></article>
+        <article><span>OUT</span><h3>输出</h3><ul><li>32 步 (dx, dy, stop)</li><li>米制 · 基座系 · 约 4 cm</li><li>推理不生成文本</li></ul></article>
+      </div>
+      <h3 class="subresult">云边：边端继续走，云端算下一段</h3>
+      <p class="kw">WebSocket + msgpack。边端发图像和位姿，云端回密集轨迹。</p>
+      <figure class="asset-figure dark"><img src="assets/cloud_edge_ws.png" alt="云边"><figcaption>推理等待时底盘仍跟踪上一段。</figcaption></figure>
+      <h3 class="subresult">失败：换段时摆动 → RTC</h3>
+      <p class="kw">冻结已经承诺的前缀，重叠区线性衰减，用定位进度估延迟。</p>
+      <figure class="asset-figure"><img src="assets/rtc_continuity.png" alt="RTC"><figcaption>不是假设定频动作队列。</figcaption></figure>
+    </section>
+
+    <section class="chapter" id="next">
+      <div class="section-head"><span>07 / 下一步</span><div><h2>真机还卡在三类失败；环视是下一接口</h2><p>过近、转弯撞、多路选错。相机从双目扩到环视时，Pixel Goal 怎么标、转弯谁来出，要先定。</p></div></div>
       <div class="solve">
         <div><b>避障过近</b><p>数据里放大本体宽度</p></div>
         <div><b>转弯碰撞</b><p>深度进入碰撞约束</p></div>
         <div><b>多路选错</b><p>深度进模型 + 参考路径</p></div>
       </div>
-
-      <article class="improve">
-        <span>评测</span>
-        <h3>仿真并行：GPU 大约只用 20%</h3>
-        <p>环境步进偏串行。并行仿真后，评测才能喂满 GPU。</p>
-      </article>
-    </section>
-
-    <section class="chapter tint" id="training">
-      <div class="section-head"><span>06 / TRAINING</span><div><h2>慢思考只跑一次</h2><p>语义侧一次算出条件并缓存，运动侧单独迭代。</p></div></div>
-      <div class="token-sequence"><span>system</span><span>vision</span><span>user</span><b>latent ×4</b><em>answer</em></div>
-      <div class="train-compare">
-        <div><span>BEFORE</span><h3>每个 epoch 重跑视觉语言模型</h3><p>规划和执行绑在一起训，算力耗在重复前向上。</p><strong>44 h</strong></div>
-        <i>→</i>
-        <div class="after"><span>OURS</span><h3>语义结果离线缓存</h3><p>运动模块直接读缓存，自己迭代。</p><strong>4.8 h <small>8.3×</small></strong></div>
-      </div>
-      <figure class="asset-figure latent-query-figure"><img src="assets/latent_query_method.png" alt="Latent query"><figcaption>Query 主动从 VLM 读导航相关条件。</figcaption></figure>
-    </section>
-
-    <section class="chapter" id="pi05">
-      <div class="section-head"><span>07 / π0.5-NAV</span><div><h2>为什么用 π0.5</h2><p>主因：π 系列在机器人数据上已预训练。无需新建 DiT 头，一次前向出轨迹。</p></div></div>
-      <figure class="asset-figure"><img src="assets/pi05_structure.png" alt="π0.5 结构"><figcaption>PaliGemma prefix（视觉+离散 state token）→ Action Expert suffix（flow matching）。</figcaption></figure>
-      <div class="io-grid">
-        <article><span>IN</span><h3>输入</h3><ul><li>head RGB 当前</li><li>chassis RGB 当前</li><li>head 历史帧</li><li>state：8 历史位姿 + goal (gx,gy)</li><li>prompt：[PointNav] …</li></ul></article>
-        <article><span>TOKEN</span><h3>离散 state</h3><p>26 维 state 离散成文本 token，走语言模型通路（π0.5 原生），不是连续向量进 expert。</p></article>
-        <article><span>OUT</span><h3>输出</h3><ul><li>32 步 (dx, dy, stop)</li><li>米制 · 基座系 · ~4 cm 弧长</li><li>推理不生成文本</li></ul></article>
-      </div>
-      <h3 class="subresult">部署：云端协同</h3>
-      <p class="kw">协议：<b>WebSocket + msgpack</b>。边端发 RGB/位姿，云端回密集轨迹。</p>
-      <figure class="asset-figure dark"><img src="assets/cloud_edge_ws.png" alt="云端协同"><figcaption>边端继续跟踪旧轨迹；云端 GPU 推理。</figcaption></figure>
-      <h3 class="subresult">RTC：动作不连续 / 摆动</h3>
-      <p class="kw">换 chunk 时 yaw 跳变。RTC：冻结 <b>inference_delay</b> 前缀，重叠区线性衰减引导。</p>
-      <figure class="asset-figure"><img src="assets/rtc_continuity.png" alt="RTC 连续"><figcaption>定位进度估算 delay，不是假设定频队列。</figcaption></figure>
-    </section>
-
-    <section class="chapter tint" id="multicam">
-      <div class="section-head"><span>08 / MULTI-CAM</span><div><h2>环视 Pixel Goal</h2><p>参考 AbotN1：多相机均可出 affordance / target pixel。先把相机放对。</p></div></div>
-      <figure class="asset-figure"><img src="assets/multicam_layout.png" alt="多相机布局"><figcaption>左右鱼眼 · 头 · 胸 · 底盘（胸/底盘可切换实验）· 背可选。</figcaption></figure>
+      <figure class="asset-figure"><img src="assets/multicam_layout.png" alt="环视布局"><figcaption>左右鱼眼 · 头 · 胸 · 底盘（胸/底盘可切换）· 背可选。</figcaption></figure>
       <div class="scheme">
         <article>
           <span>方案 1</span>
-          <h3>环视只作视角补充</h3>
-          <p>Sys2/Sys1 加环视，输出不变。</p>
-          <div class="pd"><b>优</b> 改动最小 · 输出一致</div>
-          <div class="pd"><b>缺</b> 环视价值弱</div>
+          <h3>环视只补视角</h3>
+          <p>输出不变。改动小，环视价值弱。</p>
         </article>
         <article>
-          <span>方案 2 · AbotN1</span>
-          <h3>每相机两组 pixel</h3>
-          <p>affordance + target。问题：各相机“最远可见点”不一致 → Sys2 歧义。</p>
+          <span>方案 2</span>
+          <h3>每相机出两组 pixel</h3>
+          <p>affordance + target。各相机“最远可见点”不一致，语义端会歧义。</p>
         </article>
       </div>
-      <h3 class="subresult">问题 1 · 每相机 affordance 怎么标</h3>
       <div class="solve">
-        <div><b>解法 1</b><p>直接输出，让 Sys2 学，类似 AbotN1。</p></div>
-        <div><b>解法 2</b><p>全局只留所有相机中最远的一个可见点，抑制其余 label。无歧义；难：模型要知道在哪张图出点，且与 object-goal 结构不一致。</p></div>
-        <div class="selected"><b>解法 3</b><p>footprint 投影到图：四顶点可见才取中心。矩形沿轨迹切线法向平移 → 可通行像素轨迹 → 采样 Pixel Goal。学的是可通行带，不是单点最远可见。</p></div>
+        <div><b>标法 1</b><p>直接让模型学，类似 AbotN1。</p></div>
+        <div><b>标法 2</b><p>全局只留最远的一个可见点。无歧义，但要知道在哪张图出点。</p></div>
+        <div class="selected"><b>标法 3</b><p>footprint 四顶点可见才取中心；沿轨迹法向平移得到可通行像素带，再采样 Pixel Goal。</p></div>
       </div>
-      <h3 class="subresult">问题 2 · 转弯从 Sys2 拿掉</h3>
-      <p class="kw">环视下除 STOP 外几乎总有 valid pixel，不再“看不见所以转”。转向改由 <b>Sys1 学 dx, dy=0, dyaw≠0</b>。</p>
+      <p class="kw">环视下几乎总能看见可走像素，转向不再由语义端用“看不见”触发，改由运动端学 dx, dy = 0、dyaw ≠ 0。</p>
     </section>
 
-    <section class="chapter" id="results">
-      <div class="section-head"><span>09 / RESULTS</span><div><h2>Habitat → NavArena</h2><p>真实 footprint、碰撞、长时执行。</p></div></div>
+    <section class="chapter tint" id="proof">
+      <div class="section-head"><span>08 / 结果与演示</span><div><h2>数字对应前面模块；视频对应我跑过的任务</h2><p>NavArena 看真实 footprint 和长时执行。下面视频用来讲能力边界和失败。</p></div></div>
       <div class="leaderboard">
-        <div class="leader-copy"><span>NAVARENA · POINTNAV100</span><h3>自训练 DualNav</h3><p>Sys2 Pixel Goal + Sys1 连续轨迹 + Bezier。矩形 footprint 0.70×0.60 m，stop 0.8 m：97 / 100。</p></div>
+        <div class="leader-copy"><span>NAVARENA · POINTNAV100</span><h3>Pixel Goal + 连续轨迹 + Bezier</h3><p>矩形 footprint 0.70×0.60 m，stop 0.8 m：97 / 100。</p></div>
         <div class="leader-score"><b>97<sup>%</sup></b><span>SUCCESS RATE</span><div><i>SPL <strong>0.970</strong></i><i>NE <strong>0.880 m</strong></i><i>CR <strong>0.011</strong></i><i>STEPS <strong>24.8</strong></i></div></div>
       </div>
       <div class="benchmark-bars">
-        <div><span><b>双系统推理修正</b><small>76→84</small></span><i style="--score:84%">84%</i></div>
-        <div><span><b>Collision 10 cm</b><small>66→78</small></span><i style="--score:78%">78%</i></div>
-        <div><span><b>Pixel Traj · 500ep</b><small>65→72</small></span><i style="--score:72%">72%</i></div>
-        <div><span><b>Depth collision</b><small>56→64</small></span><i style="--score:64%">64%</i></div>
-        <div><span><b>中心 Pixel Goal</b><small>50→61</small></span><i style="--score:61%">61%</i></div>
+        <div><span><b>推理解耦</b><small>调度 76→84</small></span><i style="--score:84%">84%</i></div>
+        <div><span><b>安全距离 10 cm</b><small>运动 66→78</small></span><i style="--score:78%">78%</i></div>
+        <div><span><b>Pixel Traj</b><small>语义 65→72</small></span><i style="--score:72%">72%</i></div>
+        <div><span><b>深度碰撞</b><small>运动 56→64</small></span><i style="--score:64%">64%</i></div>
+        <div><span><b>中心 Pixel</b><small>语义 50→61</small></span><i style="--score:61%">61%</i></div>
       </div>
-      <p class="result-caveat">上图是同一问题链上的逐步改动，不是和 97% NavArena 榜单混比。</p>
-      <h3 class="subresult">Habitat · R2R / RxR</h3>
+      <p class="result-caveat">条形是问题链上的逐步改动，不和 97% 榜单混比。</p>
       <div class="result-hero"><div><span>R2R VAL UNSEEN</span><b>70.74%</b></div><div><span>RxR VAL UNSEEN</span><b>55.0%</b></div><div><span>POINT VISIBLE</span><b>91.2%</b></div></div>
-      <div class="table-wrap"><table><caption>主要实验（Seen / Unseen）</caption><thead><tr><th>设置</th><th>数据</th><th>R2R Success</th><th>R2R SPL</th><th>R2R NE↓</th><th>RxR Success</th><th>RxR SPL</th><th>RxR NE↓</th></tr></thead><tbody>
+      <div class="table-wrap"><table><caption>Habitat · Seen / Unseen</caption><thead><tr><th>设置</th><th>数据</th><th>R2R Success</th><th>R2R SPL</th><th>R2R NE↓</th><th>RxR Success</th><th>RxR SPL</th><th>RxR NE↓</th></tr></thead><tbody>
         <tr><td>InternVLA</td><td>VLN-CE 100%</td><td>79.43 / 62.81</td><td>72.75 / 62.81</td><td>2.54 / 4.16</td><td>68.59 / 59.55</td><td>58.24 / 50.11</td><td>3.99 / 4.73</td></tr>
         <tr class="ours"><td>LoRA r32</td><td>VLN-CE + 15K</td><td>64.9 / 70.74</td><td>64.6 / 69.8</td><td>4.54 / 4.08</td><td>53.21 / 55.0</td><td>50.5 / 52.4</td><td>6.72 / 5.82</td></tr>
       </tbody></table></div>
-    </section>
 
-    <section class="chapter tint" id="demos">
-      <div class="section-head"><span>10 / DEMOS</span><div><h2>仿真与真机里我实际跑过的任务</h2><p>给面试官看：能走多远、怎么避障、失败卡在哪。</p></div></div>
+      <h3 class="subresult">仿真与真机</h3>
       <div class="demo-grid">
         <article><video controls muted preload="none" poster="assets/05_object_goal_and_waypoint.jpg"><source src="assets/0013-web.mp4" type="video/mp4"></video><div><span>HABITAT</span><h3>偏离后恢复</h3><p>理解方位，不跟死参考轨迹。</p></div></article>
-        <article><video controls muted preload="none"><source src="assets/0043-web.mp4" type="video/mp4"></video><div><span>HABITAT · BEV</span><h3>长距离</h3><p>持续更新局部目标。</p></div></article>
+        <article><video controls muted preload="none"><source src="assets/0043-web.mp4" type="video/mp4"></video><div><span>HABITAT</span><h3>长距离</h3></div></article>
         <article><video controls muted preload="none"><source src="assets/真机视频/连续绕障碍通过.mp4" type="video/mp4"></video><div><span>REAL</span><h3>连续绕障</h3></div></article>
         <article><video controls muted preload="none"><source src="assets/真机视频/table.mp4" type="video/mp4"></video><div><span>REAL</span><h3>桌面绕行</h3></div></article>
         <article><video controls muted preload="none"><source src="assets/真机视频/tv.mp4" type="video/mp4"></video><div><span>REAL</span><h3>电视柜</h3></div></article>
         <article><video controls muted preload="none"><source src="assets/真机视频/person.mp4" type="video/mp4"></video><div><span>REAL</span><h3>跟人</h3></div></article>
-        <article><video controls muted preload="none"><source src="assets/真机视频/rubbish.mp4" type="video/mp4"></video><div><span>REAL</span><h3>垃圾桶目标</h3></div></article>
+        <article><video controls muted preload="none"><source src="assets/真机视频/rubbish.mp4" type="video/mp4"></video><div><span>REAL</span><h3>垃圾桶</h3></div></article>
         <article><video controls muted preload="none"><source src="assets/真机视频/U型窄道堵住出口撞墙.mp4" type="video/mp4"></video><div><span>FAIL</span><h3>U 型窄道</h3></div></article>
         <article><video controls muted preload="none"><source src="assets/真机视频/combined_videos_20260910/L型障碍物.mp4" type="video/mp4"></video><div><span>OFFICE</span><h3>L 型绕障</h3></div></article>
         <article><video controls muted preload="none"><source src="assets/真机视频/combined_videos_20260910/U型椅子垃圾桶障碍物.mp4" type="video/mp4"></video><div><span>OFFICE</span><h3>U 型组合障碍</h3></div></article>
       </div>
     </section>
   </main>
-  <footer><b>DUALNAV</b><span>Pixel Goal · Dual system · π0.5-nav · Multi-cam</span><a href="../navigation-agent/">上层 Agent →</a></footer>
+  <footer><b>DUALNAV</b><span>问题 → Pixel Goal → 运动迭代 → 真机</span></footer>
   <script src="app.js"></script>
 </body>
 </html>
