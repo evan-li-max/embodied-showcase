@@ -54,6 +54,13 @@
 .train-compare .after{background:#b9ef43;color:#101817;border-color:#101817}
 .train-compare .after span,.train-compare .after p,.train-compare .after h3{color:#101817}
 .train-compare .after strong small{color:#101817;font-size:16px;font-weight:800}
+.train-compare .before{background:#f5f0e9;border-color:#b7a895;color:#17201f}
+.train-compare .before>span{display:inline-block;padding:6px 10px;background:#17201f;color:#fff;letter-spacing:.08em}
+.train-compare .before h3,.train-compare .before p,.train-compare .before strong{color:#17201f}
+.train-compare .before strong{margin-top:20px;font-variant-numeric:tabular-nums}
+.train-compare .before strong small{color:#384540;font-size:24px}
+.asset-figure img[src$="-v2.png"]{background:#faf9f5}
+.benchmark-bars{color:#17201f}
 .talk-agenda{grid-column:1/-1;display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:8px 0 12px;padding:0;list-style:none}
 .talk-agenda li{display:flex;flex-direction:column;gap:6px;padding:14px 12px;background:#b9ef43;color:#101817;min-height:88px}
 .talk-agenda b{font:800 12px/1 monospace}

@@ -79,10 +79,10 @@
           <div>
             <span class="eyebrow">失败：原地打转</span>
             <h3>可见就前进，看不见才转</h3>
-            <p>目标已在画面里仍左右扫。先验：可见点优先前进；出视野才转向；&lt;1 m 停止。仿真里再加后处理：转过了且目标可见 → 强制走运动模块。</p>
+            <p>目标已在画面里仍左右扫。先验：可见点优先前进；出视野才转向；&lt;1 m 停止。PointNav 后处理：<b>过度旋转且目标已在视野内 → 强制 Sys1 推进，不再让 Sys2 发 TURN。</b></p>
             <div class="priority"><span>VISIBLE → FORWARD</span><i>›</i><span>OUT OF VIEW → TURN</span><i>›</i><span>&lt; 1 m → STOP</span></div>
             <video class="issue-video" controls muted preload="metadata"><source src="assets/2azQ1b91cZZ_0044.mp4" type="video/mp4"></video>
-            <figure class="asset-figure inner"><img src="assets/spin_postprocess.png" alt="打转后处理"><figcaption>Prompt 约束方向；后处理兜底推进。</figcaption></figure>
+            <figure class="asset-figure inner"><img src="assets/spin_postprocess-v2.png" alt="PointNav：过度旋转且目标可见时，屏蔽 Sys2 TURN，强制 Sys1 推进" loading="lazy"><figcaption>PointNav：过度旋转 + 目标可见 → 屏蔽 Sys2 TURN → Sys1 推进。</figcaption></figure>
           </div>
         </article>
         <article class="feature">
@@ -123,7 +123,7 @@
           <tr class="ours"><td>可通行带没学到</td><td>Pixel Traj：可见自由空间采样</td><td><b>65% → 72%</b></td></tr>
         </tbody>
       </table></div>
-      <figure class="asset-figure"><img src="assets/pixel_traj_why.png" alt="Pixel Traj"><figcaption>最远可见 ≠ 可通行中心。</figcaption></figure>
+      <figure class="asset-figure"><img src="assets/pixel_traj_why-v2.png" alt="单点监督与 Pixel Traj 对比：沿可通行区域约束整条像素轨迹" loading="lazy"><figcaption>最远可见 ≠ 可通行中心。Pixel Traj 约束整条像素轨迹。</figcaption></figure>
     </section>
 
     <section class="chapter tint" id="motion">
@@ -135,7 +135,7 @@
           <tr><td>转弯摆动</td><td>历史位姿 + 语义条件进运动</td><td><b>54% → 56%</b></td><td>转弯</td></tr>
           <tr><td>大弯擦障</td><td>深度碰撞约束</td><td><b>56% → 64%</b></td><td>大弯</td></tr>
           <tr><td>分叉选错</td><td>每 3 m 一个参考点</td><td><b>64% → 66%</b></td><td>复杂场景</td></tr>
-          <tr class="ours"><td>贴障碍过近</td><td>安全距离 30 cm → 10 cm</td><td><b>66% → 78%</b></td><td>近障</td></tr>
+          <tr class="ours"><td>安全余量偏保守</td><td>安全距离 30 cm → 10 cm</td><td><b>66% → 78%</b></td><td>近障</td></tr>
         </tbody>
       </table></div>
 
@@ -154,7 +154,7 @@
         <span>56% → 64%</span>
         <h3>深度只用来罚碰撞，不当第二套地图</h3>
         <p>底盘深度变鸟瞰点云，路点离障过近就惩罚。大弯最明显。仍会偶发倒退。</p>
-        <figure class="asset-figure"><img src="assets/depth_collision_flow.png" alt="碰撞损失"><figcaption>再把安全距离 30→10 cm：66%→78%。</figcaption></figure>
+        <figure class="asset-figure"><img src="assets/depth_collision_flow-v2.png" alt="深度碰撞约束与安全距离调整：30 cm 收紧到 10 cm，成功率从 66% 提升到 78%" loading="lazy"><figcaption>在碰撞约束与参考路径的基础上，安全距离再从 30 cm 收到 10 cm：66% → 78%。</figcaption></figure>
       </article>
       <article class="improve">
         <span>64% → 66%</span>
@@ -182,22 +182,22 @@
 
       <article class="improve">
         <span>历史 · ~+5</span>
-        <h3>不要从起点均匀抽满 8 帧</h3>
-        <p>路一长，间隔被拉稀，刚转的弯看不见。对照实验：<b>最近 80 帧、每隔 10 帧一张</b>（固定间隔），约 +5。要的是刚才走过的局部。</p>
-        <figure class="asset-figure"><img src="assets/history_sample.png" alt="历史间隔"><figcaption>均匀拉满全程 → 间隔失控。固定 stride 落在最近窗口。</figcaption></figure>
+        <h3>最近 80 帧，保留局部导航记忆</h3>
+        <p>整段均匀抽 8 帧，路一长就太稀、太旧，近期转弯容易丢失。历史改为<b>最近 80 帧、每隔 10 帧一张</b>，约再 +5。</p>
+        <figure class="asset-figure"><img src="assets/history_sample-v2.png" alt="全程均匀采样与最近 80 帧固定间隔采样对比，每 10 帧取一张，共 8 张历史图" loading="lazy"><figcaption>固定近期窗口与采样间隔，让 8 张历史图聚焦刚走过的局部。</figcaption></figure>
       </article>
 
       <article class="improve">
         <span>推理 · 76% → 84%</span>
         <h3>语义和运动必须不同频</h3>
-        <p>规划出 Pixel 后冻结，运动在锚点上高频更新。训练和推理同一套调度。同频既浪费语义模型，轨迹也不稳。</p>
-        <figure class="asset-figure dark"><img src="assets/dual_rate_infer.png" alt="双频推理"><figcaption>解耦后 +8。</figcaption></figure>
+        <p>同频既浪费语义模型，轨迹也不稳。解耦后，<b>Sys2 : Sys1 的异步更新频率约为 1 : 5</b>：语义低频更新 Pixel / latent，运动在固定锚点上高频更新轨迹。训练与推理采用一致的调度策略。</p>
+        <figure class="asset-figure dark"><img src="assets/dual_rate_infer-v2.png" alt="Sys2 与 Sys1 异步解耦，语义与运动更新频率约为 1 比 5，成功率 76% 到 84%" loading="lazy"><figcaption>慢语义、快运动，异步频率约 1 : 5；解耦后 +8（76% → 84%）。</figcaption></figure>
       </article>
 
       <h3 class="subresult">训练：慢思考只跑一次</h3>
       <div class="token-sequence"><span>system</span><span>vision</span><span>user</span><b>latent ×4</b><em>answer</em></div>
       <div class="train-compare">
-        <div><span>BEFORE</span><h3>每个 epoch 重跑视觉语言模型</h3><p>规划和执行绑在一起，算力耗在重复前向。</p><strong>44 h</strong></div>
+        <div class="before"><span>BEFORE</span><h3>每 epoch 重跑 VLM</h3><p>两系统强绑定，算力耗在重复的语义前向。</p><strong>44 <small>h</small></strong></div>
         <i>→</i>
         <div class="after"><span>OURS</span><h3>语义结果离线缓存</h3><p>运动模块读缓存，自己迭代。</p><strong>4.8 h <small>8.3×</small></strong></div>
       </div>
@@ -224,11 +224,11 @@
         <article><span>OUT</span><h3>输出</h3><ul><li>32 步 (dx, dy, stop)</li><li>米制 · 基座系 · 约 4 cm</li><li>推理不生成文本</li></ul></article>
       </div>
       <h3 class="subresult">云边：边端继续走，云端算下一段</h3>
-      <p class="kw">WebSocket + msgpack。边端发图像和位姿，云端回密集轨迹。</p>
-      <figure class="asset-figure dark"><img src="assets/cloud_edge_ws.png" alt="云边"><figcaption>推理等待时底盘仍跟踪上一段。</figcaption></figure>
+      <p class="kw">通过 WebSocket + msgpack 传输图像、位姿与目标；云端 GPU 推理并返回密集轨迹，边端在等待期间继续跟踪旧轨迹。</p>
+      <figure class="asset-figure dark"><img src="assets/cloud_edge_ws-v2.png" alt="云边异步推理：边端持续跟踪旧轨迹，云端 GPU 计算下一段轨迹" loading="lazy"><figcaption>边端继续跟踪旧轨迹；云端 GPU 推理，返回下一段轨迹。</figcaption></figure>
       <h3 class="subresult">失败：换段时摆动 → RTC</h3>
-      <p class="kw">冻结已经承诺的前缀，重叠区线性衰减，用定位进度估延迟。</p>
-      <figure class="asset-figure"><img src="assets/rtc_continuity.png" alt="RTC"><figcaption>不是假设定频动作队列。</figcaption></figure>
+      <p class="kw">用定位进度估算 delay，冻结已经承诺的前缀，对重叠区的约束权重线性衰减，让新旧轨迹连续衔接。</p>
+      <figure class="asset-figure"><img src="assets/rtc_continuity-v2.png" alt="RTC：根据实际定位进度估算 delay，冻结前缀并在重叠区平滑衔接轨迹" loading="lazy"><figcaption>定位进度估算 delay，不是假设定频队列。</figcaption></figure>
     </section>
 
     <section class="chapter" id="next">
@@ -238,7 +238,7 @@
         <div><b>转弯碰撞</b><p>深度进入碰撞约束</p></div>
         <div><b>多路选错</b><p>深度进模型 + 参考路径</p></div>
       </div>
-      <figure class="asset-figure"><img src="assets/multicam_layout.png" alt="环视布局"><figcaption>左右鱼眼 · 头 · 胸 · 底盘（胸/底盘可切换）· 背可选。</figcaption></figure>
+      <figure class="asset-figure"><img src="assets/multicam_layout-v2.png" alt="多相机布局示意：左右鱼眼、头部、胸部与底盘可切换实验，背部相机可选" loading="lazy"><figcaption>左右鱼眼 · 头 · 胸 · 底盘（胸/底盘可切换实验）· 背可选。</figcaption></figure>
       <div class="scheme">
         <article>
           <span>方案 1</span>
@@ -260,7 +260,7 @@
     </section>
 
     <section class="chapter tint" id="proof">
-      <div class="section-head"><span>08 / 结果与演示</span><div><h2>数字对应前面模块；视频对应我跑过的任务</h2><p>NavArena 看真实 footprint 和长时执行。下面视频用来讲能力边界和失败。</p></div></div>
+      <div class="section-head"><span>08 / 结果与演示</span><div><h2>导航评测与实机演示</h2><p>覆盖长距离导航、物体目标导航与复杂环境避障，展示系统表现及典型失败案例。</p></div></div>
       <div class="leaderboard">
         <div class="leader-copy"><span>NAVARENA · POINTNAV100</span><h3>Pixel Goal + 连续轨迹 + Bezier</h3><p>矩形 footprint 0.70×0.60 m，stop 0.8 m：97 / 100。</p></div>
         <div class="leader-score"><b>97<sup>%</sup></b><span>SUCCESS RATE</span><div><i>SPL <strong>0.970</strong></i><i>NE <strong>0.880 m</strong></i><i>CR <strong>0.011</strong></i><i>STEPS <strong>24.8</strong></i></div></div>
@@ -279,18 +279,18 @@
         <tr class="ours"><td>LoRA r32</td><td>VLN-CE + 15K</td><td>64.9 / 70.74</td><td>64.6 / 69.8</td><td>4.54 / 4.08</td><td>53.21 / 55.0</td><td>50.5 / 52.4</td><td>6.72 / 5.82</td></tr>
       </tbody></table></div>
 
-      <h3 class="subresult">仿真与真机</h3>
+      <h3 class="subresult">导航能力展示</h3>
       <div class="demo-grid">
-        <article><video controls muted preload="none" poster="assets/05_object_goal_and_waypoint.jpg"><source src="assets/0013-web.mp4" type="video/mp4"></video><div><span>HABITAT</span><h3>偏离后恢复</h3><p>理解方位，不跟死参考轨迹。</p></div></article>
-        <article><video controls muted preload="none"><source src="assets/0043-web.mp4" type="video/mp4"></video><div><span>HABITAT</span><h3>长距离</h3></div></article>
-        <article><video controls muted preload="none"><source src="assets/真机视频/连续绕障碍通过.mp4" type="video/mp4"></video><div><span>REAL</span><h3>连续绕障</h3></div></article>
-        <article><video controls muted preload="none"><source src="assets/真机视频/table.mp4" type="video/mp4"></video><div><span>REAL</span><h3>桌面绕行</h3></div></article>
-        <article><video controls muted preload="none"><source src="assets/真机视频/tv.mp4" type="video/mp4"></video><div><span>REAL</span><h3>电视柜</h3></div></article>
-        <article><video controls muted preload="none"><source src="assets/真机视频/person.mp4" type="video/mp4"></video><div><span>REAL</span><h3>跟人</h3></div></article>
-        <article><video controls muted preload="none"><source src="assets/真机视频/rubbish.mp4" type="video/mp4"></video><div><span>REAL</span><h3>垃圾桶</h3></div></article>
-        <article><video controls muted preload="none"><source src="assets/真机视频/U型窄道堵住出口撞墙.mp4" type="video/mp4"></video><div><span>FAIL</span><h3>U 型窄道</h3></div></article>
-        <article><video controls muted preload="none"><source src="assets/真机视频/combined_videos_20260910/L型障碍物.mp4" type="video/mp4"></video><div><span>OFFICE</span><h3>L 型绕障</h3></div></article>
-        <article><video controls muted preload="none"><source src="assets/真机视频/combined_videos_20260910/U型椅子垃圾桶障碍物.mp4" type="video/mp4"></video><div><span>OFFICE</span><h3>U 型组合障碍</h3></div></article>
+        <article><video controls muted playsinline preload="none" poster="assets/05_object_goal_and_waypoint.jpg"><source src="assets/0013-web.mp4" type="video/mp4"></video><div><span>HABITAT · 仿真</span><h3>路径偏离后的自主恢复</h3><p>偏离参考路径后重新找到前进方向。</p></div></article>
+        <article><video controls muted playsinline preload="none"><source src="assets/0043-web.mp4" type="video/mp4"></video><div><span>HABITAT · 仿真</span><h3>长距离连续导航</h3></div></article>
+        <article><video controls muted playsinline preload="none"><source src="assets/真机视频/连续绕障碍通过.mp4" type="video/mp4"></video><div><span>REAL · 实机</span><h3>连续障碍物绕行</h3></div></article>
+        <article><video controls muted playsinline preload="none"><source src="assets/真机视频/toilet.mp4" type="video/mp4"></video><div><span>REAL · 实机</span><h3>马桶目标导航</h3></div></article>
+        <article><video controls muted playsinline preload="none"><source src="assets/真机视频/tv.mp4" type="video/mp4"></video><div><span>REAL · 实机</span><h3>电视目标导航</h3></div></article>
+        <article><video controls muted playsinline preload="none"><source src="assets/真机视频/person.mp4" type="video/mp4"></video><div><span>REAL · 实机</span><h3>人物目标导航</h3></div></article>
+        <article><video controls muted playsinline preload="none"><source src="assets/真机视频/rubbish.mp4" type="video/mp4"></video><div><span>REAL · 实机</span><h3>垃圾桶目标导航</h3></div></article>
+        <article><video controls muted playsinline preload="none"><source src="assets/真机视频/U型窄道堵住出口撞墙.mp4" type="video/mp4"></video><div><span>FAILURE CASE · 失败案例</span><h3>U 型窄道：出口受阻</h3></div></article>
+        <article><video controls muted playsinline preload="none"><source src="assets/真机视频/combined_videos_20260910/L型障碍物.mp4" type="video/mp4"></video><div><span>OFFICE · 办公场景</span><h3>L 型通道绕障</h3></div></article>
+        <article><video controls muted playsinline preload="none"><source src="assets/真机视频/combined_videos_20260910/U型椅子垃圾桶障碍物.mp4" type="video/mp4"></video><div><span>OFFICE · 办公场景</span><h3>U 型通道组合障碍穿行</h3></div></article>
       </div>
     </section>
   </main>
