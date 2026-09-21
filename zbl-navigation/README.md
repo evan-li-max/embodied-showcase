@@ -26,16 +26,6 @@ http://localhost:8766/showcase/zbl-navigation/
 https://evan-li-max.github.io/embodied-showcase/zbl-navigation/
 ```
 
-## 发布前必须替换
-
-1. `index.html` 中的完整 Demo 视频占位。
-2. 四个短 Demo 的文件名或外部视频嵌入。
-3. 主结果、消融实验、工程性能中的“待填写”。
-4. 工作范围与个人贡献边界。
-5. 京东经历的数据质量规则、延时分解图和真机对比视频。
-6. 知而行经历的 HMSG 截图、Top-K 对比、Corner Case 和轨迹视频。
-7. 所有公司内部名称、架构、指标和画面的脱敏及授权检查。
-
 ## 媒体建议
 
 - 架构图优先使用 SVG；目前页面内的图为可编辑 HTML/CSS 示意图。
