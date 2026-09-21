@@ -29,7 +29,7 @@
       <div class="hero-copy">
         <span class="eyebrow">CAMERA-ONLY · BEV · PIXEL GOAL</span>
         <h1>听懂任务，<br><em>也知道往哪走。</em></h1>
-        <p class="lead">点导航 · 物体导航 · 指令跟随。机器人输入只有：<b>RGB</b>、<b>定位 / 目标点</b>、<b>文本</b>。无地图、无激光。</p>
+        <p class="lead">点导航 · 物体导航 · 指令跟随。给面试官讲清楚：我做了什么、为什么这么做、数字从哪来。机器人输入只有：<b>RGB</b>、<b>定位 / 目标点</b>、<b>文本</b>。</p>
         <div class="hero-route"><span>语言任务</span><i>→</i><span>Pixel Goal</span><i>→</i><span>连续轨迹</span></div>
         <a class="button primary" href="#system">进入系统设计 ↓</a>
       </div>
@@ -133,16 +133,16 @@
           <tr><td>大弯擦障</td><td>深度碰撞约束</td><td><b>56% → 64%</b></td><td>大弯</td></tr>
           <tr><td>复杂分叉选错</td><td>每 3 m 一个参考点</td><td><b>64% → 66%</b></td><td>复杂场景</td></tr>
           <tr class="ours"><td>贴障碍过近</td><td>安全距离 30 cm → 10 cm</td><td><b>66% → 78%</b></td><td>近障</td></tr>
-          <tr><td>历史太稀、太旧</td><td>最近 80 帧、每 10 帧取 1 张</td><td><b>~+5</b></td><td>局部记忆</td></tr>
+          <tr><td>历史间隔不对</td><td>最近 80 帧、每 10 帧一张（对照：起点到当前均匀 8 帧）</td><td><b>~+5</b></td><td>局部记忆</td></tr>
           <tr class="ours"><td>规划与执行同频</td><td>慢规划 + 快执行解耦</td><td><b>76% → 84%</b></td><td>长时执行</td></tr>
         </tbody>
       </table></div>
 
       <article class="improve">
-        <span>失败：转弯摆动 · 54%→56%</span>
-        <h3>补上历史，运动才知道刚转过多少</h3>
-        <p>没有近期位姿和语义条件，弯道里容易左右扫。加上之后转弯先涨 2 个点。</p>
-        <figure class="asset-figure"><img src="assets/history_sample.png" alt="历史抽帧"><figcaption>历史改为最近 80 帧、每隔 10 帧一张，约再 +5。整段均匀抽 8 帧太稀、太旧。</figcaption></figure>
+        <span>失败：历史用错了 · ~+5</span>
+        <h3>按固定间隔取最近历史，不要从起点拉满均匀采样</h3>
+        <p>对照过两种做法：<b>从起点到当前均匀抽 8 帧</b>（路程一长，帧间隔被拉得很稀，刚转过的弯几乎看不到）；<b>只看最近一段时间，按固定间隔取帧</b>。实验结论：最近 <b>80 帧、每隔 10 帧一张</b>（8 张），约 +5。导航要的是「刚才走过的局部」，不是把整段轨迹压成 8 个点。</p>
+        <figure class="asset-figure"><img src="assets/history_sample.png" alt="历史抽帧实验"><figcaption>均匀拉满全程 → 间隔失控。固定 stride 落在最近 80 帧上。</figcaption></figure>
       </article>
 
       <article class="improve">
@@ -213,12 +213,12 @@
     </section>
 
     <section class="chapter tint" id="training">
-      <div class="section-head"><span>06 / TRAINING</span><div><h2>慢思考只跑一次</h2><p>Latent queries 在 Sys2 学完并缓存，DiT 独立迭代。</p></div></div>
-      <div class="token-sequence"><span>system</span><span>vision</span><span>user</span><b>latent ×4</b><em>answer · LM</em></div>
+      <div class="section-head"><span>06 / TRAINING</span><div><h2>慢思考只跑一次</h2><p>语义侧一次算出条件并缓存，运动侧单独迭代。</p></div></div>
+      <div class="token-sequence"><span>system</span><span>vision</span><span>user</span><b>latent ×4</b><em>answer</em></div>
       <div class="train-compare">
-        <div><span>BEFORE</span><h3>每 epoch 重跑 VLM</h3><p>两系统强绑定。</p><strong>44 h</strong></div>
+        <div><span>BEFORE</span><h3>每个 epoch 重跑视觉语言模型</h3><p>规划和执行绑在一起训，算力耗在重复前向上。</p><strong>44 h</strong></div>
         <i>→</i>
-        <div class="after"><span>OURS</span><h3>Sys2 离线缓存</h3><p>Sys1 加载特征独立训。</p><strong>4.8 h <small>8.3×</small></strong></div>
+        <div class="after"><span>OURS</span><h3>语义结果离线缓存</h3><p>运动模块直接读缓存，自己迭代。</p><strong>4.8 h <small>8.3×</small></strong></div>
       </div>
       <figure class="asset-figure latent-query-figure"><img src="assets/latent_query_method.png" alt="Latent query"><figcaption>Query 主动从 VLM 读导航相关条件。</figcaption></figure>
     </section>
@@ -289,7 +289,7 @@
     </section>
 
     <section class="chapter tint" id="demos">
-      <div class="section-head"><span>10 / DEMOS</span><div><h2>精选约 10 条</h2><p>成功看能力边界，失败看 STOP / 窄道。</p></div></div>
+      <div class="section-head"><span>10 / DEMOS</span><div><h2>仿真与真机里我实际跑过的任务</h2><p>给面试官看：能走多远、怎么避障、失败卡在哪。</p></div></div>
       <div class="demo-grid">
         <article><video controls muted preload="none" poster="assets/05_object_goal_and_waypoint.jpg"><source src="assets/0013-web.mp4" type="video/mp4"></video><div><span>HABITAT</span><h3>偏离后恢复</h3><p>理解方位，不跟死参考轨迹。</p></div></article>
         <article><video controls muted preload="none"><source src="assets/0043-web.mp4" type="video/mp4"></video><div><span>HABITAT · BEV</span><h3>长距离</h3><p>持续更新局部目标。</p></div></article>
@@ -297,7 +297,7 @@
         <article><video controls muted preload="none"><source src="assets/真机视频/table.mp4" type="video/mp4"></video><div><span>REAL</span><h3>桌面绕行</h3></div></article>
         <article><video controls muted preload="none"><source src="assets/真机视频/tv.mp4" type="video/mp4"></video><div><span>REAL</span><h3>电视柜</h3></div></article>
         <article><video controls muted preload="none"><source src="assets/真机视频/person.mp4" type="video/mp4"></video><div><span>REAL</span><h3>跟人</h3></div></article>
-        <article><video controls muted preload="none"><source src="assets/真机视频/椅子.mp4" type="video/mp4"></video><div><span>REAL</span><h3>椅子目标</h3></div></article>
+        <article><video controls muted preload="none"><source src="assets/真机视频/rubbish.mp4" type="video/mp4"></video><div><span>REAL</span><h3>垃圾桶目标</h3></div></article>
         <article><video controls muted preload="none"><source src="assets/真机视频/U型窄道堵住出口撞墙.mp4" type="video/mp4"></video><div><span>FAIL</span><h3>U 型窄道</h3></div></article>
         <article><video controls muted preload="none"><source src="assets/真机视频/combined_videos_20260910/L型障碍物.mp4" type="video/mp4"></video><div><span>OFFICE</span><h3>L 型绕障</h3></div></article>
         <article><video controls muted preload="none"><source src="assets/真机视频/combined_videos_20260910/U型椅子垃圾桶障碍物.mp4" type="video/mp4"></video><div><span>OFFICE</span><h3>U 型组合障碍</h3></div></article>
