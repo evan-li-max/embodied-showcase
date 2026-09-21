@@ -12,6 +12,8 @@
 .hero-input{grid-column:1/-1;margin:8px 0 18px}
 .feature .asset-figure.inner{margin-top:16px}
 .kw{color:var(--muted);max-width:900px}
+.improve ul.kw{max-width:none;margin:8px 0 0;padding-left:18px}
+.improve a,.kw a{color:var(--green);font-weight:700}
 .tint .kw{color:#aeb8b4}
 .improve{margin:0 0 16px;padding:26px;border:1px solid var(--line);background:var(--card)}
 .improve>span{color:var(--green);font:700 10px monospace}

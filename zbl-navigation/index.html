@@ -42,7 +42,7 @@
         <div class="mode-list"><span>RGB</span><span>POSE / GOAL</span><span>INSTRUCTION</span><span>NO LiDAR</span></div>
       </div>
       <figure class="asset-figure dark hero-input"><img src="assets/robot_inputs.png" alt="机器人输入：RGB、定位、目标文本"><figcaption>观测约束：RGB + 定位/目标点 + 文本指令。</figcaption></figure>
-      <div class="metrics-strip"><div><b>97%</b><span>NavArena PointNav SR</span></div><div><b>76%</b><span>Qwen3-VL 4B SR</span></div><div><b>72%</b><span>7B 对照 · 更慢</span></div><div><b>8.3×</b><span>DiT 训练加速</span></div></div>
+      <div class="metrics-strip"><div><b>84%</b><span>双系统推理修正</span></div><div><b>78%</b><span>碰撞距 10 cm</span></div><div><b>72%</b><span>Pixel Traj · 500ep</span></div><div><b>−27%</b><span>DataLoader 23→18 s/it</span></div></div>
     </section>
 
     <section class="chapter" id="why">
@@ -76,7 +76,8 @@
             <p>目标已在视野内仍左右扫、原地转。约束：<b>可见点优先前进</b>；看不见才转向哨兵；&lt;1 m STOP。</p>
             <div class="priority"><span>VISIBLE → FORWARD</span><i>›</i><span>OUT OF VIEW → TURN</span><i>›</i><span>&lt; 1 m → STOP</span></div>
             <video class="issue-video" controls muted preload="metadata"><source src="assets/2azQ1b91cZZ_0044.mp4" type="video/mp4"></video>
-            <small class="issue-video-note">失败案例：振荡打转 → 才有“先可见点，再猜测”。</small>
+            <small class="issue-video-note">失败：振荡打转 → Prompt 先验 + 仿真后处理。</small>
+            <figure class="asset-figure inner"><img src="assets/spin_postprocess.png" alt="打转后处理"><figcaption>PointNav：过度旋转且目标已在视野内 → 强制 Sys1 推进，不再让 Sys2 发 TURN。</figcaption></figure>
           </div>
         </article>
         <article class="feature">
@@ -106,56 +107,110 @@
       <div class="pipeline"><div><small>INPUT</small><b>Pose + RGB + Depth</b></div><i>→</i><div><small>LOOK AHEAD</small><b>未来 200 步</b></div><i>→</i><div><small>PROJECT</small><b>投影底盘图</b></div><i>→</i><div><small>FILTER</small><b>深度去遮挡</b></div><i>→</i><div><small>LABEL</small><b>最远可见 Pixel</b></div></div>
       <figure class="asset-figure"><img src="assets/montage_label_steps.jpg" alt="PointNav 标注"><figcaption>PointNav：轨迹全不可见 → 离散动作映射为转向 / STOP 哨兵。</figcaption></figure>
       <figure class="asset-figure"><img src="assets/object_point_montage_label_steps.jpg" alt="ObjectNav 标注"><figcaption>ObjectNav：可见投 3D 物体；不可见退化为最远可见点，继续探索。</figcaption></figure>
-      <h3 class="subresult">为何还要 Pixel Traj</h3>
-      <p class="kw">最远可见点常贴障碍边缘 → Sys1 被拉向墙。Pixel Traj 在可见自由空间采样，约束整条像素轨迹，不只一个点。</p>
-      <figure class="asset-figure"><img src="assets/pixel_traj_why.png" alt="Pixel Traj 动机"><figcaption>问题驱动：最远可见 ≠ 可通行中心。</figcaption></figure>
+      <h3 class="subresult">中心 Pixel / Pixel Traj · 对应涨点</h3>
+      <p class="kw">最远可见点常贴障碍边缘。中心点、再加像素轨迹，是同一问题的两级约束。</p>
+      <div class="table-wrap"><table>
+        <caption>Pixel 监督（对应模块：标注管线）</caption>
+        <thead><tr><th>模块</th><th>改动</th><th>SR</th><th>场景</th></tr></thead>
+        <tbody>
+          <tr><td>Pixel Goal</td><td>最远可见 → 中心 pixel</td><td><b>50% → 61%</b></td><td>显著</td></tr>
+          <tr><td>Pixel Goal</td><td>仅中间点（500 ep）</td><td>68%</td><td>—</td></tr>
+          <tr class="ours"><td>Pixel Traj</td><td>可见自由空间采样整条像素轨迹</td><td><b>65% → 72%</b></td><td>500 测试集</td></tr>
+        </tbody>
+      </table></div>
+      <figure class="asset-figure"><img src="assets/pixel_traj_why.png" alt="Pixel Traj 动机"><figcaption>最远可见 ≠ 可通行中心。Pixel Traj 约束整条像素轨迹。</figcaption></figure>
+      <p class="kw">仿真 final point 通过率 <b>53%</b>，与 3 m local point <b>59%</b> 接近 → 远程终点单独不够，需要局部点。</p>
     </section>
 
     <section class="chapter" id="dualnav">
-      <div class="section-head"><span>05 / DUALNAV</span><div><h2>每个改进对应一个失败</h2><p>来自 dataloader / 训练 commit：加载、历史、碰撞、footprint。</p></div></div>
+      <div class="section-head"><span>05 / DUALNAV</span><div><h2>模块 ↔ 涨点</h2><p>每条改动只回答：改了什么、涨了多少、还剩什么失败。</p></div></div>
+
+      <div class="table-wrap"><table>
+        <caption>训练 / 推理消融（同一套评测链上累加）</caption>
+        <thead><tr><th>模块</th><th>改动</th><th>SR</th><th>主要场景</th></tr></thead>
+        <tbody>
+          <tr><td>History state + LLM out</td><td>历史位姿进 Sys1；LLM 输出进条件</td><td><b>54% → 56%</b></td><td>转弯</td></tr>
+          <tr><td>Depth collision loss</td><td>底盘深度 BEV 软碰撞</td><td><b>56% → 64%</b></td><td>大弯明显</td></tr>
+          <tr><td>Reference path</td><td>每隔 3 m 下发一点</td><td><b>64% → 66%</b></td><td>复杂场景</td></tr>
+          <tr class="ours"><td>Collision 距离</td><td>30 cm → 10 cm</td><td><b>66% → 78%</b></td><td>显著</td></tr>
+          <tr><td>History 抽帧</td><td>全程 linspace 8 帧 → 最近 80 帧、每 10 帧 1 张</td><td><b>~+5</b></td><td>局部记忆</td></tr>
+          <tr class="ours"><td>双系统推理</td><td>同频 Sys2+Sys1 → 慢/快解耦；修训推不一致</td><td><b>76% → 84%</b></td><td>部署正确性</td></tr>
+        </tbody>
+      </table></div>
 
       <article class="improve">
-        <span>DATALOADER</span>
-        <h3>加载效率</h3>
-        <p>原先读全量 parquet 再随机丢掉 90%，慢且多卡不一致。改为：<b>先按 scene 采样再读</b>；<b>pickle cache</b>（rank0 构建，barrier 同步）；去掉无状态 preprocess 的 deepcopy。</p>
-        <div class="kpi"><b>确定性采样</b><b>跨 rank 一致</b><b>缓存命中后秒起</b></div>
+        <span>HISTORY STATE + LLM OUT · 54%→56%</span>
+        <h3>转弯先补记忆</h3>
+        <p>Sys1 看不到「刚转过多少、LLM 说了什么」就会在弯里摆。历史位姿 + LLM output 先把转弯抬 2 个点。</p>
+        <figure class="asset-figure"><img src="assets/history_sample.png" alt="历史抽帧"><figcaption>再改抽帧：最近 80 帧、stride 10，约 +5 SR。全程均匀 8 帧太稀、太旧。</figcaption></figure>
+      </article>
+
+      <article class="improve">
+        <span>DEPTH COLLISION · 56%→64%</span>
+        <h3>隐式用深度，大弯涨得最多</h3>
+        <p>底盘深度 → BEV 点云；路点 &lt; radius+margin 二次罚。仍有倒退轨迹：</p>
+        <p class="kw"><a href="http://39.101.65.229:43329/internnav-historystate-depthcollisionloss-remote43845-rect070x060-20260826/0068_bc457f62_train_000079.html" target="_blank" rel="noopener">失败例 0068 · 倒退</a></p>
+        <figure class="asset-figure"><img src="assets/depth_collision_flow.png" alt="深度碰撞损失流程"><figcaption>可微软约束。碰撞距离再收 30→10 cm：66%→78%。</figcaption></figure>
+      </article>
+
+      <article class="improve">
+        <span>REFERENCE PATH · 64%→66%</span>
+        <h3>每隔 3 m 一个路点</h3>
+        <p>复杂分叉靠纯视觉容易选错路。稀疏 reference 只给方向，不绑死轨迹。仿真 final point 53% ≈ 3 m local 59%。</p>
+      </article>
+
+      <article class="improve">
+        <span>DUAL-RATE INFER · 76%→84%</span>
+        <h3>以前并没有双系统推理</h3>
+        <p>Sys2 与 Sys1 一直同频；再叠加训推不一致。修成：Sys2 慢出 Pixel/Latent，Sys1 在冻结锚点上快跑。</p>
+        <figure class="asset-figure dark"><img src="assets/dual_rate_infer.png" alt="双系统推理频率"><figcaption>同频 = 浪费 VLM、运动也不稳。正确调度直接 +8 SR。</figcaption></figure>
+      </article>
+
+      <article class="improve">
+        <span>DATALOADER · 23s/it → 18s/it（−27%）</span>
+        <h3>加载技巧合在一处</h3>
+        <ul class="kw">
+          <li><b>Episode 采样</b>替代 scene 采样：按条数比例抽 episode，分布不再被大连场景绑死。</li>
+          <li><b>pickle cache</b>：rank0 建 list_data_dict，barrier 同步，避免每卡重读 parquet。</li>
+          <li><b>去掉 image_processor deepcopy</b>：preprocess 无状态，每张图 deepcopy 约 9 次/sample，纯开销。</li>
+          <li><b>历史图头→底盘</b>：近场障碍与 Pixel 坐标系一致，读图路径合并。</li>
+          <li><b>自采轨迹 bug</b>：<a href="http://gitlab.zbl.local/vln-research/dualvln_post/-/merge_requests/10/diffs?commit_id=1159c5e143d7ce9d5cf74d33822371cb44c45b28" target="_blank" rel="noopener">MR !10 / 1159c5e</a></li>
+        </ul>
       </article>
 
       <article class="improve">
         <span>POINTNAV HARD</span>
-        <h3>目的：过窄通道、别碰墙</h3>
-        <p>难点不是直线到达，是矩形 footprint 卡门、擦边。包络约 <b>0.6 × 0.8 m</b>。</p>
-        <figure class="asset-figure"><img src="assets/robot_footprint.jpg" alt="机器人 footprint"><figcaption>矩形 footprint 决定碰撞几何，圆形评测不可直接对比。</figcaption></figure>
-      </article>
-
-      <article class="improve">
-        <span>HISTORY</span>
-        <h3>从起点到当前：均匀采样</h3>
-        <p><code>linspace(0, t-1, num_history)</code>，覆盖整段走过的路径，而不是只取最近几帧。作用：抑制重复探索、给 Sys2 全局方向记忆。</p>
-      </article>
-
-      <article class="improve">
-        <span>DEPTH COLLISION</span>
-        <h3>深度碰撞 loss</h3>
-        <p>底盘深度 → BEV 点云；预测路点到最近障碍；&lt; radius+margin 二次罚。近处路点权重大（当前深度更可信）。</p>
-        <figure class="asset-figure"><img src="assets/depth_collision_flow.png" alt="深度碰撞损失流程"><figcaption>可微软约束，不替代底盘避障。</figcaption></figure>
+        <h3>过窄通道 · footprint 0.6 × 0.8</h3>
+        <figure class="asset-figure"><img src="assets/robot_footprint.jpg" alt="机器人 footprint"><figcaption>矩形包络决定擦边碰撞。圆形评测不可直接比。</figcaption></figure>
       </article>
 
       <div class="issue-grid">
         <article>
-          <span>COLLISION</span>
+          <span>BEZIER</span>
           <h3>轨迹凸包碰撞</h3>
-          <p>Bezier 平滑拐点与局部外凸。</p>
+          <p>平滑拐点与局部外凸。</p>
           <img class="collision-figure" src="assets/bezier_example.jpg" alt="Bezier 轨迹优化">
         </article>
         <article>
           <span>MODEL</span>
-          <h3>Qwen3-VL 4B，不是 7B</h3>
-          <div class="model-row"><b>7B</b><em>训练慢 · 效率低</em><strong>SR 72%</strong></div>
-          <div class="model-row"><b>4B</b><em>开源主流基座</em><strong>SR 76%</strong></div>
-          <p>开源导航工作大多基于 Qwen3 4B。4B 迭代更快，成功率更高。</p>
+          <h3>Qwen3-VL 4B</h3>
+          <div class="model-row"><b>7B</b><em>慢</em><strong>72%</strong></div>
+          <div class="model-row"><b>4B</b><em>开源主流</em><strong>76%</strong></div>
         </article>
       </div>
+
+      <h3 class="subresult">真机仍在的三类失败 · WIP</h3>
+      <div class="solve">
+        <div><b>避障过近</b><p>数据：放大本体宽度（WIP）</p></div>
+        <div><b>转弯碰撞</b><p>隐式 depth + collision loss（WIP）</p></div>
+        <div><b>多路选错</b><p>显式 depth 进模型 + reference path（WIP）</p></div>
+      </div>
+
+      <article class="improve">
+        <span>EVAL</span>
+        <h3>Habitat 并行：GPU 只用约 20%</h3>
+        <p>环境步进绑在 CPU / 串行 sim。需要并行 Habitat worker，把评测从等环境改成喂满 GPU。</p>
+      </article>
     </section>
 
     <section class="chapter tint" id="training">
@@ -219,11 +274,13 @@
         <div class="leader-score"><b>97<sup>%</sup></b><span>SUCCESS RATE</span><div><i>SPL <strong>0.970</strong></i><i>NE <strong>0.880 m</strong></i><i>CR <strong>0.011</strong></i><i>STEPS <strong>24.8</strong></i></div></div>
       </div>
       <div class="benchmark-bars">
-        <div><span><b>Self-train · Sys2+Sys1+Bezier</b><small>rectangle</small></span><i style="--score:97%">97%</i></div>
-        <div><span><b>Mixed data · Pixel + Planner</b><small>rectangle</small></span><i style="--score:92%">92%</i></div>
-        <div><span><b>Qwen3-VL 4B</b><small>开源主流基座</small></span><i style="--score:76%">76%</i></div>
-        <div><span><b>Qwen 7B</b><small>更慢 · 72%</small></span><i style="--score:72%">72%</i></div>
+        <div><span><b>双系统推理修正</b><small>76→84</small></span><i style="--score:84%">84%</i></div>
+        <div><span><b>Collision 10 cm</b><small>66→78</small></span><i style="--score:78%">78%</i></div>
+        <div><span><b>Pixel Traj · 500ep</b><small>65→72</small></span><i style="--score:72%">72%</i></div>
+        <div><span><b>Depth collision</b><small>56→64</small></span><i style="--score:64%">64%</i></div>
+        <div><span><b>中心 Pixel Goal</b><small>50→61</small></span><i style="--score:61%">61%</i></div>
       </div>
+      <p class="result-caveat">上图是<b>模块消融</b>，不是同一份 97% NavArena 榜单的横向对比。每条只对应上表那个改动。</p>
       <h3 class="subresult">Habitat · R2R / RxR</h3>
       <div class="result-hero"><div><span>R2R VAL UNSEEN</span><b>70.74%</b></div><div><span>RxR VAL UNSEEN</span><b>55.0%</b></div><div><span>POINT VISIBLE</span><b>91.2%</b></div></div>
       <div class="table-wrap"><table><caption>主要实验（Seen / Unseen）</caption><thead><tr><th>设置</th><th>数据</th><th>R2R Success</th><th>R2R SPL</th><th>R2R NE↓</th><th>RxR Success</th><th>RxR SPL</th><th>RxR NE↓</th></tr></thead><tbody>
