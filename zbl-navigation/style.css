@@ -30,6 +30,18 @@
 .solve .selected{background:#e4f4c5;border-color:#afd474}
 .tint .solve .selected{background:#2a4028;border-color:#b9ef43}
 @media(max-width:900px){.io-grid,.scheme,.solve{grid-template-columns:1fr}}
+.table-wrap{color:#17201f;background:#fff;border:1px solid #c8c8be}
+.table-wrap caption,.table-wrap th,.table-wrap td{color:#17201f}
+.table-wrap caption{font-size:16px;font-weight:800}
+.table-wrap th{color:#3d4a47;font-size:13px}
+.table-wrap td{font-size:14px}
+.table-wrap tr.ours td{background:#d8f0a7;color:#101817;font-weight:700}
+.asset-figure figcaption{color:#3d4a47;font-size:13px}
+.improve,.improve h3,.improve p,.improve li{color:#17201f}
+.improve ul.kw,.improve .kw{color:#17201f}
+.improve>span{color:#0f7a52}
+.tint .pd,.tint .scheme p,.tint .io-grid ul,.tint .io-grid p{color:#d5ddd9}
+.tint .kw{color:#d5ddd9}
 .token-sequence{border:2px solid #101817;background:#fff}
 .token-sequence>span,.token-sequence>b,.token-sequence>em{min-height:110px;padding:16px 10px;font:700 18px/1.35 "PingFang SC","Microsoft YaHei",sans-serif;color:#101817;background:#fff}
 .token-sequence b{background:#b9ef43;color:#101817;font-size:22px;box-shadow:inset 0 0 0 3px #101817}
