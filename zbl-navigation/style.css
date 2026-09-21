@@ -30,3 +30,15 @@
 .solve .selected{background:#e4f4c5;border-color:#afd474}
 .tint .solve .selected{background:#2a4028;border-color:#b9ef43}
 @media(max-width:900px){.io-grid,.scheme,.solve{grid-template-columns:1fr}}
+.token-sequence{border:2px solid #101817;background:#fff}
+.token-sequence>span,.token-sequence>b,.token-sequence>em{min-height:110px;padding:16px 10px;font:700 18px/1.35 "PingFang SC","Microsoft YaHei",sans-serif;color:#101817;background:#fff}
+.token-sequence b{background:#b9ef43;color:#101817;font-size:22px;box-shadow:inset 0 0 0 3px #101817}
+.token-sequence em{background:#17a673;color:#fff;font-size:18px}
+.train-compare>div{background:#fff;color:#101817;border:2px solid #101817}
+.train-compare span{color:#101817;font:700 13px/1.3 monospace}
+.train-compare h3{color:#101817;font-size:24px}
+.train-compare p{color:#17201f;font-size:16px}
+.train-compare strong{color:#101817;font-size:52px}
+.train-compare .after{background:#b9ef43;color:#101817;border-color:#101817}
+.train-compare .after span,.train-compare .after p,.train-compare .after h3{color:#101817}
+.train-compare .after strong small{color:#101817;font-size:16px;font-weight:800}
