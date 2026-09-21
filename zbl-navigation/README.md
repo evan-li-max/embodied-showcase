@@ -18,13 +18,13 @@ http://localhost:8766/showcase/zbl-navigation/
 
 ## 发布到 GitHub Pages
 
-可以将整个 `showcase` 作为统一展示仓库，也可以只复制本目录作为独立仓库。若作为统一仓库，页面地址形如：
+图片与视频必须提交进本仓库 `zbl-navigation/assets/`（不要用仓库外或 `../assets/` 相对路径），否则 Pages 无法加载。
+
+统一仓库地址形如：
 
 ```text
-https://<用户名>.github.io/<仓库名>/zbl-navigation/
+https://evan-li-max.github.io/embodied-showcase/zbl-navigation/
 ```
-
-在 GitHub 仓库的 Settings → Pages 中选择对应发布分支即可。
 
 ## 发布前必须替换
 
