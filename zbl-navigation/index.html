@@ -56,8 +56,8 @@
       <div class="limit-grid">
         <article><small>任务</small><h3>目标形态不统一</h3><p>坐标、物体名、一句话指令，传统规划各接一套。</p></article>
         <article><small>探索</small><h3>目标经常不在视野里</h3><p>要推断该去哪找，不是纯搜路。</p></article>
-        <article><small>本体</small><h3>直接控轮绑死机器人</h3><p>像素里的目标更接近跨本体接口。</p></article>
-        <article><small>传感</small><h3>只靠相机</h3><p>降地图、激光、精密标定成本。</p></article>
+        <article><small>本体</small><h3>相机布局与数量各不相同</h3><p>不同机器人有不同视角和相机数量；上层输出目标，运动模块统一生成连续轨迹。</p></article>
+        <article><small>输入</small><h3>视觉之外，还要任务条件</h3><p>输入包含 RGB、定位与任务目标；PointNav 需要当前位置和目标点，物体与指令导航还需要文本。</p></article>
       </div>
     </section>
 
@@ -72,7 +72,7 @@
     </section>
 
     <section class="chapter" id="semantic">
-      <div class="section-head"><span>03 / 语义</span><div><h2>先让模型“会导航”，再谈标注怎么来</h2><p>三件事：别打转、所有任务同一像素、头看物体底盘定脚。然后自动标，并改掉最远点贴墙。</p></div></div>
+      <div class="section-head"><span>03 / 语义</span><div><h2>先让模型“会导航”，再谈标注怎么来</h2><p>三件事：别打转、把离散动作编码成 Pixel Goal、头看物体底盘定脚。然后自动标，并改掉最远点贴墙。</p></div></div>
       <div class="design-stack">
         <article class="feature reverse">
           <div class="feature-no">1</div>
@@ -89,8 +89,8 @@
           <div class="feature-no">2</div>
           <div>
             <span class="eyebrow">接口</span>
-            <h3>点 / 物 / 指令，都出同一个 (u, v)</h3>
-            <p>VLM 对像素方位强于机器人坐标。离散动作信息量低；纯 latent 没法检查。两者一起用。</p>
+            <h3>把前进、转向、停止统一成 Pixel Goal</h3>
+            <p>可见目标输出图像内的 (u, v)；目标在视野外或需要停止时，把左转、右转、停止等离散动作编码成特殊 Pixel Goal。这样所有语义决策都走同一种输出格式。</p>
             <div class="prompt"><code>[PointNav] Return exactly one pixel goal (u, v).<br>Prefer FORWARD … (0,240) LEFT · (639,240) RIGHT · (320,479) STOP</code></div>
             <figure class="asset-figure inner"><img src="assets/对比不同输出形式的影响.png" alt="输出形式对比"><figcaption>Pixel = 可解释锚点；Latent = 高容量条件。</figcaption></figure>
           </div>
@@ -128,17 +128,6 @@
 
     <section class="chapter tint" id="motion">
       <div class="section-head"><span>04 / 运动</span><div><h2>按真实车体走，这条链是累加出来的</h2><p>窄道卡门 → 历史进运动 → 深度碰障 → 参考路径 → 把安全距离收紧。数字挂在同一次评测链上。</p></div></div>
-      <div class="table-wrap"><table>
-        <caption>运动这条线怎么涨</caption>
-        <thead><tr><th>失败</th><th>改动</th><th>SR</th><th>场景</th></tr></thead>
-        <tbody>
-          <tr><td>转弯摆动</td><td>历史位姿 + 语义条件进运动</td><td><b>54% → 56%</b></td><td>转弯</td></tr>
-          <tr><td>大弯擦障</td><td>深度碰撞约束</td><td><b>56% → 64%</b></td><td>大弯</td></tr>
-          <tr><td>分叉选错</td><td>每 3 m 一个参考点</td><td><b>64% → 66%</b></td><td>复杂场景</td></tr>
-          <tr class="ours"><td>安全余量偏保守</td><td>安全距离 30 cm → 10 cm</td><td><b>66% → 78%</b></td><td>近障</td></tr>
-        </tbody>
-      </table></div>
-
       <article class="improve">
         <span>车体</span>
         <h3>先承认 footprint：约 0.6 × 0.8 m</h3>
@@ -148,18 +137,28 @@
       <article class="improve">
         <span>54% → 56%</span>
         <h3>运动模块要看见“刚怎么走过来”</h3>
-        <p>没有近期位姿和语义条件，弯里左右扫。先接上，转弯 +2。</p>
+        <p>没有机器人历史状态和语义条件，模型不知道刚才的朝向与运动趋势，转弯时容易左右摆动。加入历史位姿、当前状态和语义目标后，转弯场景 +2。</p>
+        <div class="kpi"><b>历史位姿</b><b>当前状态</b><b>Pixel / latent 条件</b><b>54% → 56%</b></div>
       </article>
       <article class="improve">
         <span>56% → 64%</span>
-        <h3>深度只用来罚碰撞，不当第二套地图</h3>
-        <p>底盘深度变鸟瞰点云，路点离障过近就惩罚。大弯最明显。仍会偶发倒退。</p>
-        <figure class="asset-figure"><img src="assets/depth_collision_flow-v2.png" alt="深度碰撞约束与安全距离调整：30 cm 收紧到 10 cm，成功率从 66% 提升到 78%" loading="lazy"><figcaption>在碰撞约束与参考路径的基础上，安全距离再从 30 cm 收到 10 cm：66% → 78%。</figcaption></figure>
+        <h3>深度只在训练时约束碰撞</h3>
+        <p>训练时把底盘深度反投影成鸟瞰点云，对离障碍过近的预测路点施加软惩罚；推理时不维护第二套地图。它主要缓解窄通道碰撞，以及绕障时容易擦边的问题。</p>
+        <div class="kpi"><b>训练约束</b><b>窄通道 / 擦边</b><b>56% → 64%</b></div>
       </article>
       <article class="improve">
         <span>64% → 66%</span>
         <h3>复杂路口：每 3 m 给一个方向点</h3>
-        <p>不绑死轨迹。只给最终点不够，局部点才接近能过。</p>
+        <p>只给最终点时，分叉入口容易选错。每 3 m 增加一个局部方向参考点，提示该从哪个入口进入，同时仍由运动模块生成连续轨迹。</p>
+        <div class="kpi"><b>分叉入口选择</b><b>每 3 m 一个参考点</b><b>64% → 66%</b></div>
+        <video class="issue-video" controls muted playsinline preload="metadata"><source src="assets/真机视频/路选错.mp4" type="video/mp4"></video>
+        <small class="issue-video-note">对比案例：只看最终点时，机器人选错分叉入口。</small>
+      </article>
+      <article class="improve">
+        <span>66% → 78%</span>
+        <h3>安全距离从 30 cm 收到 10 cm</h3>
+        <p>在碰撞约束和局部参考点的基础上，30 cm 的安全余量过于保守，窄通道里容易判定无路可走；收紧到 10 cm 后，近障通过率明显提升。</p>
+        <figure class="asset-figure"><img src="assets/depth_collision_flow-v2.png" alt="训练阶段使用深度碰撞约束，并将安全距离从 30 cm 收紧到 10 cm，成功率从 66% 提升到 78%" loading="lazy"><figcaption>训练阶段加入碰撞软约束；安全距离 30 cm → 10 cm，66% → 78%。</figcaption></figure>
       </article>
       <div class="issue-grid">
         <article>
@@ -216,7 +215,7 @@
     </section>
 
     <section class="chapter tint" id="robot">
-      <div class="section-head"><span>06 / 真机</span><div><h2>为什么还有 π0.5：机器人数据上已经预训练过</h2><p>同一套导航任务，换成一次前向出轨迹。部署用云边；动作跳变用 RTC 接上。</p></div></div>
+      <div class="section-head"><span>06 / 真机</span><div><h2>基模实验：π0.5 已在机器人数据上预训练</h2><p>同一套导航任务，换成一次前向出轨迹。部署用云边；动作跳变用 RTC 接上。</p></div></div>
       <figure class="asset-figure"><img src="assets/pi05_structure.png" alt="π0.5"><figcaption>视觉 + 离散状态 token → Action Expert 流匹配。不新建 DiT 头。</figcaption></figure>
       <div class="io-grid">
         <article><span>IN</span><h3>输入</h3><ul><li>头 / 底盘当前 RGB</li><li>历史帧</li><li>8 个历史位姿 + 目标 (gx, gy)</li><li>点导航文本</li></ul></article>
